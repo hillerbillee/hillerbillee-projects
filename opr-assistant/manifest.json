@@ -1,0 +1,17 @@
+{
+  "name": "OPR Play Assistant",
+  "short_name": "OPR Assist",
+  "description": "A local play helper for One Page Rules unit rolls and wounds.",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#f4f1ea",
+  "theme_color": "#202631",
+  "icons": [
+    {
+      "src": "./app-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
