@@ -1,0 +1,16 @@
+++ Saurian Starhost (v3.5.3) [GF 995pts] [5 Units] ++
+
+Gecko Champion [1] Q5+ D5+ | 145pts | Hero, Strider, Tough(3), Primal, Scout Aura, Good Shot, Scout, Evasive
+Champion Sniper Rifle (30", A2, AP(1), Takedown, Reliable), Dagger (A1)
+
+Chameleons [5] Q5+ D5+ | 145pts | 5x Scout, 5x Strider, 5x Good Shot, 5x Primal, 5x Evasive, Ambush Beacon
+5x CCW (A1), 5x Precision Carbine (18", A1, Precise, AP(1))
+
+Raptor Riders [5] Q4+ D3+ | 205pts | 5x Ravage(1), 5x Fast, 5x Fearless, 5x Primal
+5x Power Claw (A2, AP(1), Rending), 5x Spike Pistol (9", A2, Rending)
+
+Dragon Lizard [1] Q4+ D3+ | 175pts | Fearless, Regeneration, Tough(6), Primal, Strider, Relentless
+Flame Burst (12", A2, AP(1), Blast(3), Reliable), Heavy Claws (A3, AP(1))
+
+Spinosaurus [1] Q4+ D2+ | 325pts | Fear(2), Fearless, Tough(12), Primal, Primal Boost Buff, Impact(+3)
+Spit Venom (18", A2, Blast(3), Bane), Stomp (A4, AP(1)), Toxic Bite (A6, Bane)
