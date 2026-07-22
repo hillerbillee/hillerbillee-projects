@@ -67,10 +67,12 @@
 
     const hasAttack = !/tap an attack/i.test(selected.textContent || "");
     const text = targetButtons.textContent || "";
-    const isOptional = hasAttack && /pick an attack first|no target selected/i.test(text);
+    const needsOptionalMessage = hasAttack && /pick an attack first/i.test(text);
+    const alreadyOptional = hasAttack && /you can still roll attacks/i.test(text);
+    const isOptional = needsOptionalMessage || alreadyOptional;
     const picker = targetButtons.closest(".target-picker");
     if (picker) picker.classList.toggle("is-optional", isOptional);
-    if (!isOptional) return;
+    if (!needsOptionalMessage) return;
 
     targetButtons.innerHTML = '<div class="inline-empty">No target selected. You can still roll attacks.</div>';
     if (targetHint) targetHint.textContent = "Optional";
