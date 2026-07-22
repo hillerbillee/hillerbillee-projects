@@ -1,0 +1,328 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="theme-color" content="#1f2937">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="OPR Assistant">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>OPR Play Assistant</title>
+    <link rel="manifest" href="./manifest.json">
+    <link rel="icon" href="./app-icon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="./app-icon.svg">
+    <link rel="stylesheet" href="./styles.css">
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">One Page Rules</p>
+          <h1>Play Assistant</h1>
+        </div>
+        <button class="icon-button" id="resetApp" type="button" title="Clear app data" aria-label="Clear app data">Reset</button>
+      </header>
+
+      <nav class="tabs" aria-label="App sections">
+        <button class="tab is-active" type="button" data-view-button="roster">Roster</button>
+        <button class="tab" type="button" data-view-button="attack">Attack</button>
+        <button class="tab" type="button" data-view-button="defense">Defense</button>
+        <button class="tab" type="button" data-view-button="import">Import</button>
+        <button class="tab" type="button" data-view-button="log">Log</button>
+      </nav>
+
+      <main>
+        <section class="view is-active" id="view-roster" aria-labelledby="rosterTitle">
+          <div class="section-heading">
+            <div>
+              <h2 id="rosterTitle">Roster</h2>
+              <p id="rosterCount">0 units</p>
+            </div>
+            <button class="primary" id="showAddUnit" type="button">Add Unit</button>
+          </div>
+
+          <form class="panel compact-form hidden" id="unitForm">
+            <div class="field-block">
+              <span class="field-label">Side</span>
+              <div class="segmented" id="unitSideToggle" aria-label="Unit side">
+                <button class="is-active" type="button" data-unit-side="mine">My Army</button>
+                <button type="button" data-unit-side="opponent">Opponent</button>
+              </div>
+            </div>
+            <label>
+              Unit name
+              <input id="unitName" autocomplete="off" required placeholder="Battle Brothers">
+            </label>
+            <div class="grid-3">
+              <label>
+                Models
+                <input id="unitModels" type="number" min="1" value="5" required>
+              </label>
+              <label>
+                Quality
+                <input id="unitQuality" type="number" min="2" max="6" value="4" required>
+              </label>
+              <label>
+                Defense
+                <input id="unitDefense" type="number" min="2" max="6" value="4" required>
+              </label>
+            </div>
+            <label>
+              Rules
+              <input id="unitRules" autocomplete="off" placeholder="Regeneration, Tough(3), Furious">
+            </label>
+            <label>
+              Weapons
+              <textarea id="unitWeapons" rows="4" spellcheck="false" placeholder="Claws (A3)&#10;Gauss Rifles (24&quot;, A1, AP(1))"></textarea>
+            </label>
+            <div class="button-row">
+              <button class="primary" type="submit">Save Unit</button>
+              <button type="button" id="cancelUnitEdit">Cancel</button>
+            </div>
+          </form>
+
+          <div class="empty" id="emptyRoster">
+            <h3>No units yet</h3>
+            <p>Add one manually or import text from Army Forge.</p>
+          </div>
+
+          <div class="unit-list" id="unitList"></div>
+        </section>
+
+        <section class="view" id="view-attack" aria-labelledby="attackTitle">
+          <div class="section-heading">
+            <div>
+              <h2 id="attackTitle">Attack</h2>
+              <p>Roll hits and report the result.</p>
+            </div>
+          </div>
+
+          <div class="panel combat-panel">
+            <div class="attack-focus">
+              <div>
+                <span>Selected attack</span>
+                <strong id="selectedAttackName">Tap an attack from Roster</strong>
+                <small id="selectedAttackMeta"></small>
+              </div>
+              <button id="changeAttack" type="button">Roster</button>
+            </div>
+
+            <div class="target-picker">
+              <div class="mini-heading">
+                <h3>Target</h3>
+                <span id="targetHint">Pick who is being hit</span>
+              </div>
+              <div class="target-buttons" id="targetButtons"></div>
+            </div>
+
+            <div class="result-strip">
+              <div>
+                <span>Attack dice</span>
+                <strong id="attackDice">-</strong>
+                <small id="weaponDetails"></small>
+              </div>
+              <div>
+                <span>Hit roll</span>
+                <strong id="hitNeeded">-</strong>
+                <small id="hitFaces"></small>
+              </div>
+              <div>
+                <span>Hits scored</span>
+                <strong id="attackHitsPreview">0</strong>
+                <small>Tell opponent this many saves</small>
+              </div>
+            </div>
+
+            <div class="step-card">
+              <div class="step-copy">
+                <span>1</span>
+                <strong id="hitStepTitle">Pick an attack</strong>
+                <small id="hitStepHint"></small>
+              </div>
+              <button class="primary" id="rollHits" type="button">Roll Hits</button>
+              <div class="manual-controls" aria-label="Physical hit dice controls">
+                <button id="markHit" type="button">Hit +</button>
+                <button id="markMiss" type="button">Miss +</button>
+                <button id="undoHitMark" type="button">Undo</button>
+              </div>
+              <div class="dice-tray" id="hitDiceTray"></div>
+            </div>
+
+            <div class="grid-2">
+              <label>
+                Hit mod
+                <input id="hitMod" type="number" min="-6" max="6" value="0">
+              </label>
+              <label>
+                Hits scored
+                <input id="hitsScored" type="number" min="0" value="0">
+              </label>
+            </div>
+
+            <div class="rules-callout" id="rulesCallout"></div>
+
+            <div class="button-row">
+              <button id="clearCombat" type="button">Clear Attack</button>
+            </div>
+            <div class="feedback hidden" id="combatFeedback"></div>
+          </div>
+        </section>
+
+        <section class="view" id="view-defense" aria-labelledby="defenseTitle">
+          <div class="section-heading">
+            <div>
+              <h2 id="defenseTitle">Defense</h2>
+              <p>Roll saves, regeneration, then apply damage.</p>
+            </div>
+          </div>
+
+          <div class="panel combat-panel">
+            <div class="attack-focus">
+              <div>
+                <span>Defending unit</span>
+                <strong id="selectedDefenderName">Pick who is being hit</strong>
+                <small id="selectedDefenderMeta"></small>
+              </div>
+              <button id="changeDefender" type="button">Roster</button>
+            </div>
+
+            <div class="target-picker">
+              <div class="mini-heading">
+                <h3>Who is being hit?</h3>
+                <span id="defenseHint">Pick one of your units</span>
+              </div>
+              <div class="target-buttons" id="defenderButtons"></div>
+            </div>
+
+            <div class="result-strip">
+              <div>
+                <span>Incoming hits</span>
+                <strong id="incomingHitsDisplay">0</strong>
+                <small>After opponent rolls attack</small>
+              </div>
+              <div>
+                <span>Defense roll</span>
+                <strong id="saveNeeded">-</strong>
+                <small id="saveFaces"></small>
+              </div>
+              <div>
+                <span>Damage to apply</span>
+                <strong id="damagePreview">0</strong>
+                <small>After saves and regen</small>
+              </div>
+            </div>
+
+            <div class="grid-4">
+              <label>
+                Incoming hits
+                <input id="incomingHits" type="number" min="0" value="0">
+              </label>
+              <label>
+                AP
+                <input id="apValue" type="number" min="0" max="12" value="0">
+              </label>
+              <label>
+                Failed saves
+                <input id="failedSaves" type="number" min="0" value="0">
+              </label>
+              <label>
+                Wounds per failed save
+                <input id="woundsPerFail" type="number" min="1" max="24" value="1">
+              </label>
+            </div>
+
+            <div class="grid-2">
+              <label id="regenInputWrap">
+                Regeneration successes
+                <input id="regenSuccesses" type="number" min="0" value="0">
+              </label>
+            </div>
+
+            <div class="step-card">
+              <div class="step-copy">
+                <span>1</span>
+                <strong id="saveStepTitle">Roll defense saves</strong>
+                <small id="saveStepHint"></small>
+              </div>
+              <button id="rollSaves" type="button">Roll Saves</button>
+              <div class="manual-controls" aria-label="Physical save dice controls">
+                <button id="markSave" type="button">Saved +</button>
+                <button id="markFail" type="button">Failed +</button>
+                <button id="undoSaveMark" type="button">Undo</button>
+              </div>
+              <div class="dice-tray" id="saveDiceTray"></div>
+            </div>
+
+            <div class="step-card" id="regenStep">
+              <div class="step-copy">
+                <span>2</span>
+                <strong id="regenStepTitle">Roll Regeneration</strong>
+                <small id="regenStepHint"></small>
+              </div>
+              <button id="rollRegen" type="button">Roll Regen</button>
+              <div class="manual-controls" aria-label="Physical regeneration dice controls">
+                <button id="markRegenPass" type="button">Regen +</button>
+                <button id="markRegenFail" type="button">Failed +</button>
+                <button id="undoRegenMark" type="button">Undo</button>
+              </div>
+              <div class="dice-tray" id="regenDiceTray"></div>
+            </div>
+
+            <div class="rules-callout" id="defenseRulesCallout"></div>
+
+            <div class="button-row">
+              <button class="danger" id="applyDamage" type="button">Apply Damage</button>
+              <button id="clearDefense" type="button">Clear Defense</button>
+            </div>
+            <div class="feedback hidden" id="defenseFeedback"></div>
+          </div>
+        </section>
+
+        <section class="view" id="view-import" aria-labelledby="importTitle">
+          <div class="section-heading">
+            <div>
+              <h2 id="importTitle">Import</h2>
+              <p>JSON saves or copied Army Forge text.</p>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="field-block">
+              <span class="field-label">Import to</span>
+              <div class="segmented" id="importSideToggle" aria-label="Import side">
+                <button class="is-active" type="button" data-import-side="mine">My Army</button>
+                <button type="button" data-import-side="opponent">Opponent</button>
+              </div>
+            </div>
+            <label>
+              Import file
+              <input id="fileImport" type="file" accept=".json,.txt,application/json,text/plain">
+            </label>
+            <label>
+              Paste list text or JSON
+              <textarea id="pasteImport" rows="10" spellcheck="false" placeholder="Paste Army Forge text or JSON here"></textarea>
+            </label>
+            <div class="button-row">
+              <button class="primary" id="importPasted" type="button">Import</button>
+              <button id="loadSample" type="button">Load Text Examples</button>
+            </div>
+            <div class="feedback hidden" id="importFeedback"></div>
+          </div>
+        </section>
+
+        <section class="view" id="view-log" aria-labelledby="logTitle">
+          <div class="section-heading">
+            <div>
+              <h2 id="logTitle">Log</h2>
+              <p id="logCount">0 entries</p>
+            </div>
+            <button id="undoLast" type="button">Undo</button>
+          </div>
+          <div class="log-list" id="logList"></div>
+        </section>
+      </main>
+    </div>
+
+    <script src="./app.js"></script>
+  </body>
+</html>
