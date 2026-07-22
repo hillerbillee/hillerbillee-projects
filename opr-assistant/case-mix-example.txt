@@ -1,0 +1,19 @@
+++ Case Mix - Beastmen (v3.5.3), Ghostly Undead (v3.5.3), High Elves (v3.5.3), Vampiric Undead (v3.5.3) [AOF 1000pts] [6 Units] ++
+
+Ancient Banshee [1] Q3+ D6+ | 120pts | Ethereal, Hero, Tough(3), Empyrean Spirit, Resistance, No Retreat Aura
+Howl (12", A4, AP(1)), Claws (A3)
+
+Vampire Master [1] Q3+ D3+ | 230pts | Furious, Hero, Tough(6), Cursed Undead, Shred in Melee Aura, Fast, Flying, Impact(2), Mind Control
+Heavy Great Weapon (A3, AP(3)), Hooves (A1)
+
+Phoenix Warriors [5] Q3+ D4+ | 130pts | 5x Regeneration, 5x Highborn, Piercing Tag(1)
+5x Heavy Halberd (A1, AP(1), Rending)
+
+Hapari Harpies [5] Q5+ D5+ | 80pts | 5x Flying, 5x Scout, 5x Bestial
+5x Heavy Claws (A2, AP(1))
+
+Crazed Boars [3] Q4+ D5+ | 155pts | 3x Fast, 3x Impact(2), Tough(3), 3x Unpredictable Fighter, 3x Bestial
+3x Heavy Tusks (A2, AP(1))
+
+Slimey Beast [1] Q4+ D3+ | 285pts | Fear(2), Flying, Tough(12), Bestial
+Tongue Grasp (12", A3, AP(1), Reliable, Takedown), Acid Maw (A6, Shred), Stomp (A4, AP(1))
