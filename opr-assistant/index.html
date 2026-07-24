@@ -24,7 +24,8 @@
       </header>
 
       <nav class="tabs" aria-label="App sections">
-        <button class="tab is-active" type="button" data-view-button="roster">Roster</button>
+        <button class="tab is-active" type="button" data-view-button="play">Play</button>
+        <button class="tab" type="button" data-view-button="roster">List</button>
         <button class="tab" type="button" data-view-button="attack">Attack</button>
         <button class="tab" type="button" data-view-button="defense">Defense</button>
         <button class="tab" type="button" data-view-button="import">Import</button>
@@ -32,7 +33,19 @@
       </nav>
 
       <main>
-        <section class="view is-active" id="view-roster" aria-labelledby="rosterTitle">
+        <section class="view is-active" id="view-play" aria-labelledby="playTitle">
+          <div class="section-heading">
+            <div>
+              <h2 id="playTitle">Play</h2>
+              <p id="playHint">Pick a unit and choose what it is doing.</p>
+            </div>
+          </div>
+
+          <div class="play-card panel" id="playCard"></div>
+          <div class="play-rail" id="playUnitRail"></div>
+        </section>
+
+        <section class="view" id="view-roster" aria-labelledby="rosterTitle">
           <div class="section-heading">
             <div>
               <h2 id="rosterTitle">Roster</h2>
@@ -107,7 +120,7 @@
               <button id="changeAttack" type="button">Roster</button>
             </div>
 
-            <div class="target-picker">
+            <div class="target-picker" id="targetPicker">
               <div class="mini-heading">
                 <h3>Target</h3>
                 <span id="targetHint">Pick who is being hit</span>
