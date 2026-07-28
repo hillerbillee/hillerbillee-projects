@@ -157,10 +157,21 @@ Spit Venom (18", A2, Blast(3), Bane), Stomp (A4, AP(1)), Toxic Bite (A6, Bane)`;
         --warn: #9c6d1b;
       }
 
-      * { box-sizing: border-box; }
+      * {
+        box-sizing: border-box;
+        min-width: 0;
+      }
+
+      html {
+        width: 100%;
+        max-width: 100%;
+        overflow-x: hidden;
+      }
 
       body {
         margin: 0;
+        width: 100%;
+        max-width: 100%;
         min-height: 100vh;
         background: #f3f0e8;
         color: var(--ink);
@@ -234,6 +245,9 @@ Spit Venom (18", A2, Blast(3), Bane), Stomp (A4, AP(1)), Toxic Bite (A6, Bane)`;
       .opr-main {
         display: grid;
         gap: 12px;
+        width: 100%;
+        max-width: 100%;
+        overflow-x: hidden;
         padding: 12px;
         padding-bottom: calc(88px + env(safe-area-inset-bottom));
       }
@@ -247,6 +261,9 @@ Spit Venom (18", A2, Blast(3), Bane), Stomp (A4, AP(1)), Toxic Bite (A6, Bane)`;
       .play-card {
         display: grid;
         gap: 12px;
+        width: 100%;
+        max-width: 100%;
+        overflow-x: hidden;
         padding: 12px;
       }
 
@@ -418,6 +435,8 @@ Spit Venom (18", A2, Blast(3), Bane), Stomp (A4, AP(1)), Toxic Bite (A6, Bane)`;
       .block {
         display: grid;
         gap: 8px;
+        width: 100%;
+        max-width: 100%;
       }
 
       .block-head {
@@ -436,6 +455,7 @@ Spit Venom (18", A2, Blast(3), Bane), Stomp (A4, AP(1)), Toxic Bite (A6, Bane)`;
         display: grid;
         justify-items: start;
         width: 100%;
+        max-width: 100%;
         height: auto;
         min-height: 54px;
         border-color: #c8d0dc;
@@ -448,7 +468,7 @@ Spit Venom (18", A2, Blast(3), Bane), Stomp (A4, AP(1)), Toxic Bite (A6, Bane)`;
         max-width: 100%;
         overflow: hidden;
         text-overflow: ellipsis;
-        white-space: nowrap;
+        white-space: normal;
       }
 
       .target small, .weapon small {
@@ -511,6 +531,7 @@ Spit Venom (18", A2, Blast(3), Bane), Stomp (A4, AP(1)), Toxic Bite (A6, Bane)`;
         padding: 12px;
         line-height: 1.45;
         font-size: .96rem;
+        overflow-wrap: anywhere;
       }
 
       .callout.warn {
@@ -579,18 +600,23 @@ Spit Venom (18", A2, Blast(3), Bane), Stomp (A4, AP(1)), Toxic Bite (A6, Bane)`;
         position: sticky;
         bottom: 0;
         z-index: 9;
-        margin: 0 -12px calc(-88px - env(safe-area-inset-bottom));
+        margin: 0 0 calc(-88px - env(safe-area-inset-bottom));
         padding: 8px 12px calc(9px + env(safe-area-inset-bottom));
         border-right: 0;
         border-bottom: 0;
         border-left: 0;
         border-radius: 0;
         background: rgba(255, 253, 250, .98);
+        width: 100%;
+        max-width: 100%;
+        overflow: hidden;
       }
 
       .rail {
         display: flex;
         gap: 8px;
+        width: 100%;
+        max-width: 100%;
         overflow-x: auto;
         padding-bottom: 3px;
         scroll-snap-type: x proximity;
@@ -645,6 +671,7 @@ Spit Venom (18", A2, Blast(3), Bane), Stomp (A4, AP(1)), Toxic Bite (A6, Bane)`;
 
       .focus-card {
         gap: 10px;
+        overflow-x: hidden;
       }
 
       .focus-hero {
@@ -652,6 +679,8 @@ Spit Venom (18", A2, Blast(3), Bane), Stomp (A4, AP(1)), Toxic Bite (A6, Bane)`;
         grid-template-columns: 118px minmax(0, 1fr);
         gap: 10px;
         align-items: stretch;
+        width: 100%;
+        max-width: 100%;
       }
 
       .unit-art,
@@ -748,23 +777,27 @@ Spit Venom (18", A2, Blast(3), Bane), Stomp (A4, AP(1)), Toxic Bite (A6, Bane)`;
       }
 
       .action-strip {
-        display: flex;
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
         gap: 6px;
-        overflow-x: auto;
-        padding-bottom: 2px;
+        width: 100%;
+        max-width: 100%;
+        overflow: visible;
       }
 
       .action-strip button {
-        flex: 0 0 auto;
         min-height: 38px;
         padding: 0 11px;
         font-size: .82rem;
+        white-space: normal;
       }
 
       .compact-actions {
         display: grid;
-        grid-template-columns: repeat(4, minmax(0, 1fr));
+        grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 6px;
+        width: 100%;
+        max-width: 100%;
       }
 
       .compact-actions button {
@@ -773,9 +806,8 @@ Spit Venom (18", A2, Blast(3), Bane), Stomp (A4, AP(1)), Toxic Bite (A6, Bane)`;
       }
 
       .key-rules {
-        flex-wrap: nowrap;
-        overflow-x: auto;
-        padding-bottom: 2px;
+        flex-wrap: wrap;
+        overflow: hidden;
       }
 
       .deck-grid {
@@ -866,15 +898,18 @@ Spit Venom (18", A2, Blast(3), Bane), Stomp (A4, AP(1)), Toxic Bite (A6, Bane)`;
 
       .targets,
       .weapons {
-        display: flex;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 7px;
-        overflow-x: auto;
-        padding-bottom: 2px;
+        width: 100%;
+        max-width: 100%;
+        overflow: hidden;
       }
 
       .target,
       .weapon {
-        flex: 0 0 190px;
+        width: 100%;
+        max-width: 100%;
         min-height: 58px;
       }
 
@@ -988,9 +1023,13 @@ Spit Venom (18", A2, Blast(3), Bane), Stomp (A4, AP(1)), Toxic Bite (A6, Bane)`;
         .deck-card.art-card { min-height: 164px; }
         .deck-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
         .deck-meta { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-        .focus-hero { grid-template-columns: 104px minmax(0, 1fr); }
-        .focus-art { min-height: 132px; }
-        .focus-copy h2 { font-size: 1.22rem; }
+        .focus-hero { grid-template-columns: 88px minmax(0, 1fr); }
+        .focus-art { min-height: 112px; }
+        .focus-copy { gap: 6px; }
+        .focus-copy h2 { font-size: 1.12rem; }
+        .focus-buttons button { min-height: 32px; padding: 0 7px; font-size: .72rem; }
+        .pill, .chip { min-height: 25px; padding: 0 7px; font-size: .7rem; }
+        .mini-stats b { font-size: .9rem; }
         .mini-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
         .stats, .math-grid { gap: 6px; }
         .stat, .math-box { padding: 8px; }
@@ -999,9 +1038,10 @@ Spit Venom (18", A2, Blast(3), Bane), Stomp (A4, AP(1)), Toxic Bite (A6, Bane)`;
         .actions { grid-template-columns: repeat(2, minmax(0, 1fr)); }
         .quick, .compact-actions { grid-template-columns: repeat(2, minmax(0, 1fr)); }
         .field-grid, .field-grid.two { grid-template-columns: 1fr; }
+        .targets, .weapons { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .action-strip { grid-template-columns: repeat(3, minmax(0, 1fr)); }
         .bump-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
         .unit-head { display: grid; }
-        .rail-card { margin-left: -10px; margin-right: -10px; }
         .unit-thumb { flex-basis: 118px; }
       }
 
@@ -1009,6 +1049,7 @@ Spit Venom (18", A2, Blast(3), Bane), Stomp (A4, AP(1)), Toxic Bite (A6, Bane)`;
         .focus-hero { grid-template-columns: 1fr; }
         .focus-art { min-height: 148px; }
         .deck-grid { grid-template-columns: 1fr; }
+        .targets, .weapons, .action-strip { grid-template-columns: 1fr; }
       }
     `;
     document.head.appendChild(style);
