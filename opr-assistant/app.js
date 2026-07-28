@@ -62,6 +62,7 @@ Spit Venom (18", A2, Blast(3), Bane), Stomp (A4, AP(1)), Toxic Bite (A6, Bane)`;
       action: "charge",
       weaponId: "",
       targetId: "",
+      targetOpen: false,
       importSide: "mine",
       importOpen: false,
       tired: false,
@@ -180,7 +181,7 @@ Spit Venom (18", A2, Blast(3), Bane), Stomp (A4, AP(1)), Toxic Bite (A6, Bane)`;
         overflow-x: hidden;
       }
 
-      button, input, textarea { font: inherit; }
+      button, input, textarea, select { font: inherit; }
 
       button {
         min-height: 42px;
@@ -249,7 +250,7 @@ Spit Venom (18", A2, Blast(3), Bane), Stomp (A4, AP(1)), Toxic Bite (A6, Bane)`;
         max-width: 100%;
         overflow-x: hidden;
         padding: 12px;
-        padding-bottom: calc(88px + env(safe-area-inset-bottom));
+        padding-bottom: calc(118px + env(safe-area-inset-bottom));
       }
 
       .play-card, .rail-card {
@@ -495,7 +496,7 @@ Spit Venom (18", A2, Blast(3), Bane), Stomp (A4, AP(1)), Toxic Bite (A6, Bane)`;
         min-width: 0;
       }
 
-      input, textarea {
+      input, textarea, select {
         width: 100%;
         min-height: 42px;
         border: 1px solid var(--line);
@@ -597,19 +598,22 @@ Spit Venom (18", A2, Blast(3), Bane), Stomp (A4, AP(1)), Toxic Bite (A6, Bane)`;
       }
 
       .rail-card {
-        position: sticky;
+        position: fixed;
         bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
         z-index: 9;
-        margin: 0 0 calc(-88px - env(safe-area-inset-bottom));
+        margin: 0;
         padding: 8px 12px calc(9px + env(safe-area-inset-bottom));
         border-right: 0;
         border-bottom: 0;
         border-left: 0;
         border-radius: 0;
         background: rgba(255, 253, 250, .98);
-        width: 100%;
+        width: min(100%, 720px);
         max-width: 100%;
         overflow: hidden;
+        box-shadow: 0 -8px 18px rgba(31, 38, 51, .08);
       }
 
       .rail {
@@ -913,6 +917,54 @@ Spit Venom (18", A2, Blast(3), Bane), Stomp (A4, AP(1)), Toxic Bite (A6, Bane)`;
         min-height: 58px;
       }
 
+      .target-compact {
+        gap: 6px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: #fbfcfd;
+        padding: 8px;
+      }
+
+      .target-line {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 8px;
+        align-items: center;
+      }
+
+      .target-line strong,
+      .target-line small {
+        display: block;
+      }
+
+      .target-line strong {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        font-size: .98rem;
+      }
+
+      .target-line small {
+        color: var(--muted);
+        font-weight: 750;
+        line-height: 1.2;
+      }
+
+      .target-actions {
+        display: flex;
+        gap: 6px;
+      }
+
+      .target-actions button {
+        min-height: 34px;
+        padding: 0 9px;
+        font-size: .76rem;
+      }
+
+      .target-select {
+        margin-top: 2px;
+      }
+
       .stats,
       .math-grid {
         grid-template-columns: repeat(auto-fit, minmax(116px, 1fr));
@@ -1015,7 +1067,7 @@ Spit Venom (18", A2, Blast(3), Bane), Stomp (A4, AP(1)), Toxic Bite (A6, Bane)`;
       }
 
       @media (max-width: 640px) {
-        .opr-main { padding: 10px; padding-bottom: calc(86px + env(safe-area-inset-bottom)); }
+        .opr-main { padding: 10px; padding-bottom: calc(118px + env(safe-area-inset-bottom)); }
         .opr-top { padding-left: 10px; padding-right: 10px; }
         .top-buttons button { min-height: 38px; padding: 0 8px; }
         .play-card { padding: 10px; }
@@ -1040,6 +1092,8 @@ Spit Venom (18", A2, Blast(3), Bane), Stomp (A4, AP(1)), Toxic Bite (A6, Bane)`;
         .field-grid, .field-grid.two { grid-template-columns: 1fr; }
         .targets, .weapons { grid-template-columns: repeat(2, minmax(0, 1fr)); }
         .action-strip { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+        .target-line { grid-template-columns: 1fr; }
+        .target-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
         .bump-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
         .unit-head { display: grid; }
         .unit-thumb { flex-basis: 118px; }
@@ -1090,8 +1144,11 @@ Spit Venom (18", A2, Blast(3), Bane), Stomp (A4, AP(1)), Toxic Bite (A6, Bane)`;
     }
 
     const targetChoices = getTargetChoices(unit);
-    if (!targetChoices.some((target) => target.id === state.targetId)) {
-      state.targetId = targetChoices[0]?.id || "";
+    if (state.targetId && !targetChoices.some((target) => target.id === state.targetId)) {
+      state.targetId = "";
+    }
+    if (!targetChoices.length) {
+      state.targetOpen = false;
     }
     const target = targetChoices.find((item) => item.id === state.targetId) || null;
     const weapons = getLegalWeapons(unit, state.action);
@@ -1186,6 +1243,7 @@ Spit Venom (18", A2, Blast(3), Bane), Stomp (A4, AP(1)), Toxic Bite (A6, Bane)`;
           ${units.map(renderDeckCard).join("")}
         </div>
       </section>
+      <section class="rail-card">${renderRail("")}</section>
     `;
   }
 
@@ -1238,19 +1296,27 @@ Spit Venom (18", A2, Blast(3), Bane), Stomp (A4, AP(1)), Toxic Bite (A6, Bane)`;
     if (!["shoot", "charge", "melee"].includes(state.action)) return "";
     if (!targetChoices.length) return "";
     return `
-      <section class="block">
-        <div class="block-head">
-          <h3>Target</h3>
-          <span class="kicker">${target ? "Selected" : "Pick one"}</span>
+      <section class="block target-compact">
+        <div class="target-line">
+          <div>
+            <span class="kicker">Target optional</span>
+            <strong>${target ? escapeHtml(target.name) : "No target selected"}</strong>
+            <small>${target ? escapeHtml(targetMeta(target)) : "Add this only when you want target save math."}</small>
+          </div>
+          <div class="target-actions">
+            ${target ? `<button type="button" data-command="clear-target">Clear</button>` : ""}
+            <button type="button" data-command="toggle-target">${state.targetOpen ? "Close" : target ? "Change" : "Add"}</button>
+          </div>
         </div>
-        <div class="targets">
-          ${targetChoices.map((choice) => `
-            <button type="button" class="target ${choice.id === target?.id ? "is-active" : ""}" data-target="${choice.id}">
-              <strong>${escapeHtml(choice.name)}</strong>
-              <small>${escapeHtml(targetMeta(choice))}</small>
-            </button>
-          `).join("")}
-        </div>
+        ${state.targetOpen ? `
+          <label class="target-select">
+            <span>Choose target</span>
+            <select data-target-select>
+              <option value="">No target</option>
+              ${targetChoices.map((choice) => `<option value="${escapeHtml(choice.id)}" ${choice.id === state.targetId ? "selected" : ""}>${escapeHtml(choice.name)} - ${escapeHtml(targetMeta(choice))}</option>`).join("")}
+            </select>
+          </label>
+        ` : ""}
       </section>
     `;
   }
@@ -1630,6 +1696,14 @@ Spit Venom (18", A2, Blast(3), Bane), Stomp (A4, AP(1)), Toxic Bite (A6, Bane)`;
   }
 
   async function handleChange(event) {
+    const targetSelect = event.target.closest("[data-target-select]");
+    if (targetSelect) {
+      state.targetId = targetSelect.value || "";
+      state.targetOpen = false;
+      render();
+      return;
+    }
+
     const input = event.target.closest("[data-field]");
     if (input) {
       render();
@@ -1667,9 +1741,21 @@ Spit Venom (18", A2, Blast(3), Bane), Stomp (A4, AP(1)), Toxic Bite (A6, Bane)`;
     if (command === "home") {
       state.contextOpen = false;
       state.targetId = "";
+      state.targetOpen = false;
       state.weaponId = "";
       state.hits = 0;
       state.rendingHits = 0;
+      render();
+      return;
+    }
+    if (command === "toggle-target") {
+      state.targetOpen = !state.targetOpen;
+      render();
+      return;
+    }
+    if (command === "clear-target") {
+      state.targetId = "";
+      state.targetOpen = false;
       render();
       return;
     }

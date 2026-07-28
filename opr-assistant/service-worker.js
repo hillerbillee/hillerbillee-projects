@@ -1,4 +1,4 @@
-const CACHE_NAME = "opr-play-assistant-v16";
+const CACHE_NAME = "opr-play-assistant-v17";
 const FILES = [
   "./",
   "./index.html",
