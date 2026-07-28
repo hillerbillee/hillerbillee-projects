@@ -791,7 +791,7 @@ Spit Venom (18", A2, Blast(3), Bane), Stomp (A4, AP(1)), Toxic Bite (A6, Bane)`;
       <section class="block">
         <div class="math-grid">
           <div class="math-box"><span>Incoming Hits</span><strong>${state.incomingHits}</strong><small>After opponent rolls</small></div>
-          <div class="math-box"><span>Defense Roll</span><strong>${saveNeededText(unit.defense, ap)}</strong><small>D${unit.defense}+ with AP(${ap})</small></div>
+          <div class="math-box"><span>Defense Roll</span><strong>${saveNeededText(unit.defense, ap)}</strong><small>${saveNeededDetail(unit.defense, ap)}</small></div>
           <div class="math-box"><span>Damage</span><strong>${damage}</strong><small>After saves${regen && !state.ignoreRegen ? " and regen" : ""}</small></div>
         </div>
 
@@ -1373,8 +1373,19 @@ Spit Venom (18", A2, Blast(3), Bane), Stomp (A4, AP(1)), Toxic Bite (A6, Bane)`;
   }
 
   function saveNeededText(defense, ap) {
-    const needed = Math.max(2, numberValue(defense, 4) + Math.max(0, numberValue(ap, 0)));
-    return needed > 6 ? `${needed}+ (no normal save)` : `${needed}+`;
+    const needed = modifiedSave(defense, ap);
+    return `${needed.roll}+${needed.capped ? " max" : ""}`;
+  }
+
+  function saveNeededDetail(defense, ap) {
+    const needed = modifiedSave(defense, ap);
+    const base = `D${numberValue(defense, 4)}+ with AP(${Math.max(0, numberValue(ap, 0))})`;
+    return needed.capped ? `${base}, capped at 6+` : base;
+  }
+
+  function modifiedSave(defense, ap) {
+    const raw = Math.max(2, numberValue(defense, 4) + Math.max(0, numberValue(ap, 0)));
+    return { roll: Math.min(6, raw), capped: raw > 6 };
   }
 
   function hitFaces(needed) {
