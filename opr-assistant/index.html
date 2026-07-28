@@ -11,7 +11,7 @@
     <link rel="manifest" href="./manifest.json">
     <link rel="icon" href="./app-icon.svg" type="image/svg+xml">
     <link rel="apple-touch-icon" href="./app-icon.svg">
-    <link rel="stylesheet" href="./styles.css">
+    <link rel="stylesheet" href="./styles.css?v=18">
   </head>
   <body>
     <div class="app-shell">
@@ -336,6 +336,33 @@
       </main>
     </div>
 
-    <script src="./app.js"></script>
+    <script src="./app.js?v=18"></script>
+    <script>
+      if ("serviceWorker" in navigator) {
+        window.addEventListener("load", () => {
+          navigator.serviceWorker.register("./service-worker.js", { updateViaCache: "none" })
+            .then((registration) => {
+              registration.update();
+              if (registration.waiting) registration.waiting.postMessage({ type: "SKIP_WAITING" });
+              registration.addEventListener("updatefound", () => {
+                const worker = registration.installing;
+                if (!worker) return;
+                worker.addEventListener("statechange", () => {
+                  if (worker.state === "installed" && navigator.serviceWorker.controller) {
+                    worker.postMessage({ type: "SKIP_WAITING" });
+                  }
+                });
+              });
+            })
+            .catch(() => {});
+        });
+        let refreshing = false;
+        navigator.serviceWorker.addEventListener("controllerchange", () => {
+          if (refreshing) return;
+          refreshing = true;
+          window.location.reload();
+        });
+      }
+    </script>
   </body>
 </html>
