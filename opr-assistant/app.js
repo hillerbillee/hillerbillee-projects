@@ -43,7 +43,8 @@ Spit Venom (18", A2, Blast(3), Bane), Stomp (A4, AP(1)), Toxic Bite (A6, Bane)`;
     ["shoot", "Move + Shoot"],
     ["charge", "Charge"],
     ["melee", "Melee"],
-    ["defend", "Defend"]
+    ["defend", "Defend"],
+    ["morale", "Morale"]
   ];
 
   const state = loadState();
@@ -57,6 +58,7 @@ Spit Venom (18", A2, Blast(3), Bane), Stomp (A4, AP(1)), Toxic Bite (A6, Bane)`;
     return {
       units: [],
       activeId: "",
+      contextOpen: false,
       action: "charge",
       weaponId: "",
       targetId: "",
@@ -90,6 +92,7 @@ Spit Venom (18", A2, Blast(3), Bane), Stomp (A4, AP(1)), Toxic Bite (A6, Bane)`;
     next.log = Array.isArray(raw?.log) ? raw.log : [];
     next.importSide = normalizeSide(next.importSide);
     next.action = ACTIONS.some(([key]) => key === next.action) ? next.action : "charge";
+    next.contextOpen = false;
     return next;
   }
 
@@ -243,6 +246,73 @@ Spit Venom (18", A2, Blast(3), Bane), Stomp (A4, AP(1)), Toxic Bite (A6, Bane)`;
         padding: 12px;
       }
 
+      .deck-card {
+        display: grid;
+        gap: 10px;
+        width: 100%;
+        height: auto;
+        min-height: 138px;
+        border-color: var(--line);
+        background: #fff;
+        padding: 14px;
+        text-align: left;
+      }
+
+      .deck-card.dead {
+        opacity: .45;
+        filter: grayscale(1);
+        background-image: repeating-linear-gradient(135deg, rgba(31, 38, 51, .08) 0 2px, transparent 2px 7px);
+      }
+
+      .deck-card.done { opacity: .68; }
+
+      .deck-head {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 10px;
+      }
+
+      .deck-title {
+        display: grid;
+        gap: 2px;
+        min-width: 0;
+      }
+
+      .deck-title strong {
+        overflow-wrap: anywhere;
+        font-size: 1.15rem;
+        line-height: 1.08;
+      }
+
+      .deck-meta {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 8px;
+      }
+
+      .deck-meta span {
+        border-radius: 8px;
+        background: var(--soft);
+        padding: 8px;
+        color: var(--ink);
+        font-size: .84rem;
+        font-weight: 850;
+        line-height: 1.18;
+      }
+
+      .deck-rules {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+      }
+
+      .deck-hint {
+        color: var(--muted);
+        font-size: .88rem;
+        line-height: 1.28;
+      }
+
       .unit-head {
         display: flex;
         align-items: flex-start;
@@ -323,14 +393,14 @@ Spit Venom (18", A2, Blast(3), Bane), Stomp (A4, AP(1)), Toxic Bite (A6, Bane)`;
 
       .actions {
         display: grid;
-        grid-template-columns: repeat(5, minmax(0, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(96px, 1fr));
         gap: 6px;
       }
 
       .actions button {
-        min-height: 40px;
-        padding: 0 5px;
-        font-size: .72rem;
+        min-height: 44px;
+        padding: 0 8px;
+        font-size: .78rem;
         line-height: 1.1;
         white-space: normal;
       }
@@ -434,8 +504,9 @@ Spit Venom (18", A2, Blast(3), Bane), Stomp (A4, AP(1)), Toxic Bite (A6, Bane)`;
         border-left: 4px solid var(--blue);
         border-radius: 8px;
         background: #f1f4fb;
-        padding: 10px;
-        line-height: 1.32;
+        padding: 12px;
+        line-height: 1.45;
+        font-size: .96rem;
       }
 
       .callout.warn {
@@ -445,30 +516,34 @@ Spit Venom (18", A2, Blast(3), Bane), Stomp (A4, AP(1)), Toxic Bite (A6, Bane)`;
 
       .step {
         display: grid;
-        grid-template-columns: 32px minmax(0, 1fr);
-        gap: 10px;
+        grid-template-columns: 42px minmax(0, 1fr);
+        gap: 12px;
         align-items: start;
         border: 1px solid var(--line);
         border-radius: 8px;
-        padding: 10px;
+        padding: 12px;
       }
 
       .step b:first-child {
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        width: 32px;
-        height: 32px;
+        width: 42px;
+        height: 42px;
         border-radius: 50%;
         background: #1f2633;
         color: #fff;
       }
 
+      .step p {
+        line-height: 1.38;
+      }
+
       .step small {
         display: block;
-        margin-top: 3px;
+        margin-top: 5px;
         color: var(--muted);
-        line-height: 1.25;
+        line-height: 1.35;
       }
 
       .import-box {
@@ -518,12 +593,12 @@ Spit Venom (18", A2, Blast(3), Bane), Stomp (A4, AP(1)), Toxic Bite (A6, Bane)`;
       }
 
       .unit-thumb {
-        flex: 0 0 118px;
+        flex: 0 0 156px;
         display: grid;
         justify-items: start;
-        gap: 2px;
-        min-height: 58px;
-        padding: 8px;
+        gap: 4px;
+        min-height: 76px;
+        padding: 10px;
         text-align: left;
         scroll-snap-align: start;
       }
@@ -533,11 +608,13 @@ Spit Venom (18", A2, Blast(3), Bane), Stomp (A4, AP(1)), Toxic Bite (A6, Bane)`;
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
+        font-size: .98rem;
       }
 
       .unit-thumb span {
         color: var(--muted);
-        font-size: .72rem;
+        font-size: .8rem;
+        line-height: 1.18;
       }
 
       .unit-thumb.done { opacity: .58; }
@@ -567,16 +644,19 @@ Spit Venom (18", A2, Blast(3), Bane), Stomp (A4, AP(1)), Toxic Bite (A6, Bane)`;
         .opr-top { padding-left: 10px; padding-right: 10px; }
         .top-buttons button { min-height: 38px; padding: 0 8px; }
         .play-card { padding: 10px; }
+        .deck-card { min-height: 132px; padding: 12px; }
+        .deck-meta { grid-template-columns: repeat(2, minmax(0, 1fr)); }
         .stats, .math-grid { gap: 6px; }
         .stat, .math-box { padding: 8px; }
         .stat strong, .math-box strong { font-size: 1.05rem; }
         .actions, .quick { gap: 5px; }
+        .actions { grid-template-columns: repeat(2, minmax(0, 1fr)); }
         .quick { grid-template-columns: repeat(2, minmax(0, 1fr)); }
         .field-grid, .field-grid.two { grid-template-columns: 1fr; }
         .bump-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
         .unit-head { display: grid; }
         .rail-card { margin-left: -10px; margin-right: -10px; }
-        .unit-thumb { flex-basis: 106px; }
+        .unit-thumb { flex-basis: 146px; }
       }
     `;
     document.head.appendChild(style);
@@ -591,7 +671,6 @@ Spit Venom (18", A2, Blast(3), Bane), Stomp (A4, AP(1)), Toxic Bite (A6, Bane)`;
   function render() {
     const app = document.getElementById("app");
     if (!app) return;
-    ensureActiveUnit();
 
     if (!state.units.length) {
       app.innerHTML = `
@@ -610,6 +689,13 @@ Spit Venom (18", A2, Blast(3), Bane), Stomp (A4, AP(1)), Toxic Bite (A6, Bane)`;
     }
 
     const unit = getActiveUnit();
+    if (!state.contextOpen || !unit) {
+      state.contextOpen = false;
+      app.innerHTML = renderUnitDeck();
+      saveState();
+      return;
+    }
+
     const targetChoices = getTargetChoices(unit);
     if (!targetChoices.some((target) => target.id === state.targetId)) {
       state.targetId = targetChoices[0]?.id || "";
@@ -634,6 +720,7 @@ Spit Venom (18", A2, Blast(3), Bane), Stomp (A4, AP(1)), Toxic Bite (A6, Bane)`;
             <p class="muted">${unit.currentModels}/${unit.startModels} models - Q${unit.quality}+ D${unit.defense}+ - ${escapeHtml(woundText)}</p>
           </div>
           <div class="pill-row">
+            <button type="button" data-command="home">All Units</button>
             <span class="pill ${unit.side}">${sideLabel(unit.side)}</span>
             <span class="pill ${unit.activated ? "done" : ""}">${unit.activated ? "Done" : "Ready"}</span>
             ${dead ? `<span class="pill bad">Dead</span>` : ""}
@@ -665,14 +752,67 @@ Spit Venom (18", A2, Blast(3), Bane), Stomp (A4, AP(1)), Toxic Bite (A6, Bane)`;
 
         ${renderTargetBlock(targetChoices, target)}
         ${renderWeaponBlock(unit, weapons, weapon)}
-        ${state.action === "defend" ? renderDefenseBlock(unit) : renderAttackBlock(unit, weapon, target)}
+        ${state.action === "defend" ? renderDefenseBlock(unit) : state.action === "morale" ? renderMoraleBlock(unit) : renderAttackBlock(unit, weapon, target)}
         ${renderSteps(unit, weapon, target)}
         ${renderLog()}
       </section>
-      <section class="rail-card">${renderRail()}</section>
+      <section class="rail-card">${renderRail(unit.id)}</section>
     `;
 
     saveState();
+  }
+
+  function renderUnitDeck() {
+    const units = sortedUnits();
+    const readyCount = units.filter((unit) => unit.currentModels > 0 && !unit.activated).length;
+    return `
+      <section class="play-card">
+        <div class="unit-head">
+          <div>
+            <span class="kicker">Choose a unit</span>
+            <h2>Unit Deck</h2>
+            <p class="muted">${units.length} units loaded - ${readyCount} ready. Tap a card when you are about to use that unit.</p>
+          </div>
+          <div class="pill-row">
+            <button type="button" data-command="toggle-import">Import</button>
+          </div>
+        </div>
+        ${state.importOpen ? renderImportBox() : ""}
+        <div class="block">
+          ${units.map(renderDeckCard).join("")}
+        </div>
+      </section>
+    `;
+  }
+
+  function renderDeckCard(unit) {
+    const dead = unit.currentModels <= 0;
+    const morale = moraleState(unit);
+    const rules = importantRules(unit).slice(0, 5);
+    const weapons = normalizeWeapons(unit.weapons).slice(0, 2).map((weapon) => `${weapon.name}: ${attackDice(weapon)} dice, AP(${weapon.ap || 0})`);
+    return `
+      <button type="button" class="deck-card ${unit.activated ? "done" : ""} ${dead ? "dead" : ""}" data-unit="${unit.id}">
+        <div class="deck-head">
+          <div class="deck-title">
+            <span class="kicker">${sideLabel(unit.side)} - ${dead ? "Destroyed" : unit.activated ? "Done" : unit.status}</span>
+            <strong>${escapeHtml(unit.name)}</strong>
+          </div>
+          <div class="pill-row">
+            <span class="pill ${unit.side}">${sideLabel(unit.side)}</span>
+            <span class="pill ${morale.half ? "bad" : ""}">${morale.half ? "Half" : "Above Half"}</span>
+          </div>
+        </div>
+        <div class="deck-meta">
+          <span>${unit.currentModels}/${unit.startModels} models</span>
+          <span>Q${unit.quality}+ D${unit.defense}+</span>
+          <span>${morale.failShort}</span>
+        </div>
+        <div class="deck-rules">
+          ${rules.length ? rules.map((rule) => `<span class="chip">${escapeHtml(rule)}</span>`).join("") : `<span class="chip">No key rules</span>`}
+        </div>
+        <div class="deck-hint">${escapeHtml(weapons.length ? weapons.join(" / ") : "Tap for actions, attacks, defense, and morale.")}</div>
+      </button>
+    `;
   }
 
   function renderImportBox() {
@@ -752,13 +892,16 @@ Spit Venom (18", A2, Blast(3), Bane), Stomp (A4, AP(1)), Toxic Bite (A6, Bane)`;
     const rendingHits = rending ? Math.min(numberValue(state.rendingHits), numberValue(state.hits)) : 0;
     const normalHits = Math.max(0, numberValue(state.hits) - rendingHits);
     const tell = buildAttackTell(target, weapon, normalHits, rendingHits, bane);
+    const saveBoxTitle = target ? "Target Save" : "Base AP";
+    const saveBoxValue = target ? saveNeededText(target.defense, baseAp) : baseAp;
+    const saveBoxDetail = target ? saveNeededDetail(target.defense, baseAp) : (rending ? "Rending 6s are AP 4" : "Normal hits");
 
     return `
       <section class="block">
         <div class="math-grid">
           <div class="math-box"><span>Attack Dice</span><strong>${dice}</strong><small>${escapeHtml(weapon.name)}</small></div>
           <div class="math-box"><span>Hit Roll</span><strong>${hit}+</strong><small>${hitFaces(hit)}</small></div>
-          <div class="math-box"><span>Base AP</span><strong>${baseAp}</strong><small>${rending ? "Rending 6s are AP 4" : "Normal hits"}</small></div>
+          <div class="math-box"><span>${saveBoxTitle}</span><strong>${saveBoxValue}</strong><small>${escapeHtml(saveBoxDetail)}</small></div>
         </div>
 
         <div class="field-grid ${rending ? "" : "two"}">
@@ -816,6 +959,24 @@ Spit Venom (18", A2, Blast(3), Bane), Stomp (A4, AP(1)), Toxic Bite (A6, Bane)`;
     `;
   }
 
+  function renderMoraleBlock(unit) {
+    const morale = moraleState(unit);
+    const fearless = hasRule(unit, "Fearless");
+    return `
+      <section class="block">
+        <div class="math-grid">
+          <div class="math-box"><span>Morale Roll</span><strong>Q${unit.quality}+</strong><small>${hitFaces(unit.quality)}</small></div>
+          <div class="math-box"><span>Strength</span><strong>${morale.half ? "Half" : "Above"}</strong><small>${unit.currentModels}/${unit.startModels} models</small></div>
+          <div class="math-box"><span>If Failed</span><strong>${morale.failLabel}</strong><small>${morale.failShort}</small></div>
+        </div>
+        <div class="callout ${morale.half ? "warn" : ""}">
+          ${escapeHtml(morale.failLong)}
+          ${fearless ? `<br>${escapeHtml("Fearless: if this morale test fails, roll one die. On 4+ it counts as passed instead.")}` : ""}
+        </div>
+      </section>
+    `;
+  }
+
   function renderSteps(unit, weapon, target) {
     const steps = buildSteps(unit, weapon, target);
     return `
@@ -840,14 +1001,18 @@ Spit Venom (18", A2, Blast(3), Bane), Stomp (A4, AP(1)), Toxic Bite (A6, Bane)`;
     `;
   }
 
-  function renderRail() {
-    const units = sortedUnits();
+  function renderRail(activeId = "") {
+    const units = sortedUnits().filter((unit) => unit.id !== activeId);
     return `
       <div class="rail">
+        <button type="button" class="unit-thumb" data-command="home">
+          <strong>All Units</strong>
+          <span>Back to deck</span>
+        </button>
         ${units.map((unit) => {
           const dead = unit.currentModels <= 0;
           return `
-            <button type="button" class="unit-thumb ${unit.id === state.activeId ? "is-active" : ""} ${unit.activated ? "done" : ""} ${dead ? "dead" : ""}" data-unit="${unit.id}">
+            <button type="button" class="unit-thumb ${unit.activated ? "done" : ""} ${dead ? "dead" : ""}" data-unit="${unit.id}">
               <strong>${escapeHtml(unit.name)}</strong>
               <span>${unit.currentModels}/${unit.startModels} - ${unit.side === "mine" ? "Mine" : "Them"}${unit.activated ? " - done" : ""}</span>
             </button>
@@ -911,6 +1076,13 @@ Spit Venom (18", A2, Blast(3), Bane), Stomp (A4, AP(1)), Toxic Bite (A6, Bane)`;
       if (tough > 1) steps.push(step(`Tough(${tough})`, `Track wounds until the model has ${tough}, then remove one model.`, "Wounds continue onto the next Tough model."));
     }
 
+    if (action === "morale") {
+      const morale = moraleState(unit);
+      steps.push(step("Morale test", `Roll one die. Pass on Q${unit.quality}+.`, "Use this when the game calls for a morale test."));
+      steps.push(step(morale.half ? "Half strength" : "Above half", morale.failLong, morale.half ? "This is the important run/remove check." : "If the unit later drops to half or below, failed morale removes it."));
+      if (hasRule(unit, "Fearless")) steps.push(step("Fearless", "If this morale test fails, roll one die. On 4+ it counts as passed instead.", "This reminder is included before applying the failed morale result."));
+    }
+
     if (weapon && ["shoot", "charge", "melee"].includes(action)) {
       steps.push(step(weapon.name, `Roll ${attackDice(weapon)} dice. Hits are ${hitNeeded(unit, weapon, action)}+.`, `${weapon.range ? `Range ${weapon.range}. ` : ""}Base AP(${weapon.ap || 0}).`));
       if (weaponHas(weapon, "Reliable")) steps.push(step("Reliable", "This attack hits on 2+.", "The hit number already includes this."));
@@ -947,13 +1119,13 @@ Spit Venom (18", A2, Blast(3), Bane), Stomp (A4, AP(1)), Toxic Bite (A6, Bane)`;
     }
 
     if (normalHits) {
-      lines.push(`${normalHits} normal hit${normalHits === 1 ? "" : "s"}: ${target.name} saves on ${saveNeededText(target.defense, ap)} at AP(${ap}).`);
+      lines.push(`Tell opponent: ${normalHits} normal save${normalHits === 1 ? "" : "s"} on ${saveNeededText(target.defense, ap)} (${saveNeededDetail(target.defense, ap)}).`);
     }
     if (rendingHits) {
-      lines.push(`${rendingHits} Rending hit${rendingHits === 1 ? "" : "s"}: ${target.name} saves on ${saveNeededText(target.defense, 4)} at AP(4), no Regeneration.`);
+      lines.push(`Tell opponent: ${rendingHits} Rending save${rendingHits === 1 ? "" : "s"} on ${saveNeededText(target.defense, 4)} (${saveNeededDetail(target.defense, 4)}), no Regeneration.`);
     }
     if (!normalHits && !rendingHits) {
-      lines.push(`${target.name}: enter hits after you roll. Normal saves are ${saveNeededText(target.defense, ap)} at AP(${ap}).`);
+      lines.push(`${target.name}: after you roll hits, tell them saves are ${saveNeededText(target.defense, ap)} (${saveNeededDetail(target.defense, ap)}).`);
     }
     const regen = ruleRating(target, "Regeneration", 5);
     if (regen && !rendingHits && !bane) lines.push(`${target.name} has Regeneration ${regen}+.`);
@@ -982,6 +1154,7 @@ Spit Venom (18", A2, Blast(3), Bane), Stomp (A4, AP(1)), Toxic Bite (A6, Bane)`;
     const unitButton = event.target.closest("[data-unit]");
     if (unitButton) {
       state.activeId = unitButton.dataset.unit;
+      state.contextOpen = true;
       state.hits = 0;
       state.rendingHits = 0;
       ensureLegalWeapon();
@@ -1058,6 +1231,15 @@ Spit Venom (18", A2, Blast(3), Bane), Stomp (A4, AP(1)), Toxic Bite (A6, Bane)`;
     const unit = getActiveUnit();
     if (command === "toggle-import") {
       state.importOpen = !state.importOpen;
+      render();
+      return;
+    }
+    if (command === "home") {
+      state.contextOpen = false;
+      state.targetId = "";
+      state.weaponId = "";
+      state.hits = 0;
+      state.rendingHits = 0;
       render();
       return;
     }
@@ -1141,7 +1323,6 @@ Spit Venom (18", A2, Blast(3), Bane), Stomp (A4, AP(1)), Toxic Bite (A6, Bane)`;
     }
 
     state.units.push(...units.map(normalizeUnit));
-    if (!state.activeId) state.activeId = units[0].id;
     state.importOpen = false;
     addLog("Imported", `${units.length} unit${units.length === 1 ? "" : "s"} to ${sideLabel(side)}.`);
     if (shouldRender) render();
@@ -1362,6 +1543,27 @@ Spit Venom (18", A2, Blast(3), Bane), Stomp (A4, AP(1)), Toxic Bite (A6, Bane)`;
     if (tough > 1) parts.push(`Tough ${tough}`);
     if (regen) parts.push(`Regen ${regen}+`);
     return parts.join(" - ");
+  }
+
+  function importantRules(unit) {
+    const priority = ["Impact", "Regeneration", "Tough", "Bestial", "Rending", "Bane", "Fearless", "Fast", "Flying", "Scout", "Good Shot", "Reliable", "Precise"];
+    const rules = normalizedRules(unit);
+    return [
+      ...rules.filter((rule) => priority.some((name) => rule.toLowerCase() === name.toLowerCase() || rule.toLowerCase().startsWith(`${name.toLowerCase()}(`))),
+      ...rules.filter((rule) => !priority.some((name) => rule.toLowerCase() === name.toLowerCase() || rule.toLowerCase().startsWith(`${name.toLowerCase()}(`)))
+    ];
+  }
+
+  function moraleState(unit) {
+    const half = unit.currentModels > 0 && unit.currentModels <= unit.startModels / 2;
+    return {
+      half,
+      failLabel: half ? "Runs" : "Shaken",
+      failShort: half ? "Fail morale: removed" : "Fail morale: shaken",
+      failLong: half
+        ? `${unit.name} is at half strength or below. If it fails morale, it runs and is removed.`
+        : `${unit.name} is above half strength. If it fails morale, apply the failed morale status instead of removing it.`
+    };
   }
 
   function sideLabel(side) {
