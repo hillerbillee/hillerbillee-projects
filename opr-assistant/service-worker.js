@@ -1,11 +1,11 @@
-const CACHE_NAME = "opr-play-assistant-v22";
+const CACHE_NAME = "opr-play-assistant-v23";
 const FILES = [
   "./",
   "./index.html",
   "./styles.css",
-  "./styles.css?v=22",
+  "./styles.css?v=23",
   "./app.js",
-  "./app.js?v=22",
+  "./app.js?v=23",
   "./manifest.json",
   "./app-icon.svg",
   "./case-mix-example.txt",

@@ -40,8 +40,7 @@ Spit Venom (18", A2, Blast(3), Bane), Stomp (A4, AP(1)), Toxic Bite (A6, Bane)`;
 
   const ATTACK_ACTIONS = [
     ["shoot", "Shoot"],
-    ["charge", "Charge"],
-    ["melee", "Melee"]
+    ["charge", "Charge + Melee"]
   ];
   const ACTIONS = [
     ...ATTACK_ACTIONS,
@@ -100,7 +99,7 @@ Spit Venom (18", A2, Blast(3), Bane), Stomp (A4, AP(1)), Toxic Bite (A6, Bane)`;
     next.units = Array.isArray(raw?.units) ? raw.units.map(normalizeUnit) : [];
     next.log = Array.isArray(raw?.log) ? raw.log : [];
     next.importSide = normalizeSide(next.importSide);
-    next.action = ACTIONS.some(([key]) => key === next.action) ? next.action : "charge";
+    next.action = next.action === "melee" ? "charge" : ACTIONS.some(([key]) => key === next.action) ? next.action : "charge";
     next.moraleOpen = next.action === "morale" || Boolean(next.moraleOpen);
     next.damageOpen = next.action === "defend" || Boolean(next.damageOpen);
     if (!isAttackAction(next.action)) next.action = "charge";
@@ -1054,7 +1053,7 @@ Spit Venom (18", A2, Blast(3), Bane), Stomp (A4, AP(1)), Toxic Bite (A6, Bane)`;
 
       .attack-mode-grid {
         display: grid;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
+        grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 6px;
       }
 
@@ -1391,7 +1390,7 @@ Spit Venom (18", A2, Blast(3), Bane), Stomp (A4, AP(1)), Toxic Bite (A6, Bane)`;
         .effect-line { grid-template-columns: 1fr; }
         .deployment-line button,
         .effect-line button { width: 100%; }
-        .attack-mode-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+        .attack-mode-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
         .effect-buttons,
         .effect-buttons.two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
         .stats, .math-grid { gap: 6px; }
@@ -1723,12 +1722,11 @@ Spit Venom (18", A2, Blast(3), Bane), Stomp (A4, AP(1)), Toxic Bite (A6, Bane)`;
     const ranged = getLegalWeapons(unit, "shoot");
     const melee = getLegalWeapons(unit, "charge");
     const movement = movementProfile(unit);
-    const kind = state.action === "shoot" ? "Ranged weapons" : "Melee weapons";
+    const impact = ruleRating(unit, "Impact", 0);
+    const kind = state.action === "shoot" ? "Ranged weapons" : "Charge + melee";
     const hint = state.action === "shoot"
       ? `Move up to ${movement.shoot}" and use ranged weapons only.`
-      : state.action === "charge"
-        ? `Charge up to ${movement.charge}", then resolve charge effects and melee weapons.`
-        : "Use melee weapons only. No ranged attacks in this action.";
+      : `Charge up to ${movement.charge}", ${impact ? `resolve Impact(${impact}), then ` : ""}use all melee weapons. No ranged attacks in this action.`;
     return `
       <section class="block">
         <div class="block-head">
@@ -1737,8 +1735,7 @@ Spit Venom (18", A2, Blast(3), Bane), Stomp (A4, AP(1)), Toxic Bite (A6, Bane)`;
         </div>
         <div class="attack-mode-grid">
           <button type="button" class="${state.action === "shoot" ? "is-active" : ""}" data-action="shoot" ${ranged.length ? "" : "disabled"}>Shoot</button>
-          <button type="button" class="${state.action === "charge" ? "is-active" : ""}" data-action="charge" ${melee.length ? "" : "disabled"}>Charge</button>
-          <button type="button" class="${state.action === "melee" ? "is-active" : ""}" data-action="melee" ${melee.length ? "" : "disabled"}>Melee</button>
+          <button type="button" class="${state.action === "charge" ? "is-active" : ""}" data-action="charge" ${melee.length ? "" : "disabled"}>Charge + Melee</button>
         </div>
         <div class="callout">${escapeHtml(hint)}</div>
         ${renderAttackPrep(unit, weapon)}
@@ -2573,7 +2570,13 @@ Spit Venom (18", A2, Blast(3), Bane), Stomp (A4, AP(1)), Toxic Bite (A6, Bane)`;
   function ensureLegalWeapon() {
     const unit = getActiveUnit();
     if (!unit) return;
-    const legal = getLegalWeapons(unit, state.action);
+    let legal = getLegalWeapons(unit, state.action);
+    if (!legal.length) {
+      const melee = getLegalWeapons(unit, "charge");
+      const ranged = getLegalWeapons(unit, "shoot");
+      state.action = melee.length ? "charge" : ranged.length ? "shoot" : "charge";
+      legal = getLegalWeapons(unit, state.action);
+    }
     if (!legal.some((weapon) => weapon.id === state.weaponId)) state.weaponId = legal[0]?.id || "";
   }
 
