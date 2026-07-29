@@ -38,11 +38,13 @@ Flame Burst (12", A2, AP(1), Blast(3), Reliable), Heavy Claws (A3, AP(1))
 Spinosaurus [1] Q4+ D2+ | 325pts | Fear(2), Fearless, Tough(12), Primal, Primal Boost Buff, Impact(+3)
 Spit Venom (18", A2, Blast(3), Bane), Stomp (A4, AP(1)), Toxic Bite (A6, Bane)`;
 
-  const ACTIONS = [
-    ["deploy", "Deploy"],
-    ["shoot", "Move + Shoot"],
+  const ATTACK_ACTIONS = [
+    ["shoot", "Shoot"],
     ["charge", "Charge"],
-    ["melee", "Melee"],
+    ["melee", "Melee"]
+  ];
+  const ACTIONS = [
+    ...ATTACK_ACTIONS,
     ["defend", "Defend"],
     ["morale", "Morale"]
   ];
@@ -63,6 +65,8 @@ Spit Venom (18", A2, Blast(3), Bane), Stomp (A4, AP(1)), Toxic Bite (A6, Bane)`;
       weaponId: "",
       targetId: "",
       targetOpen: false,
+      unpredictableResult: "",
+      impactHits: 0,
       importSide: "mine",
       importOpen: false,
       tired: false,
@@ -113,6 +117,7 @@ Spit Venom (18", A2, Blast(3), Bane), Stomp (A4, AP(1)), Toxic Bite (A6, Bane)`;
       wounds: Math.max(0, numberValue(unit.wounds, 0)),
       status: unit.status || "ready",
       activated: Boolean(unit.activated),
+      deployed: Boolean(unit.deployed),
       artData: typeof unit.artData === "string" ? unit.artData : ""
     };
   }
@@ -197,6 +202,7 @@ Spit Venom (18", A2, Blast(3), Bane), Stomp (A4, AP(1)), Toxic Bite (A6, Bane)`;
       button.is-active { border-color: var(--primary); background: var(--primary-soft); color: var(--primary); }
       button.primary { border-color: var(--primary); background: var(--primary); color: #fff; }
       button.danger { border-color: var(--danger); background: var(--danger); color: #fff; }
+      button:disabled { opacity: .45; transform: none; }
 
       .opr-shell {
         width: min(100%, 720px);
@@ -780,6 +786,148 @@ Spit Venom (18", A2, Blast(3), Bane), Stomp (A4, AP(1)), Toxic Bite (A6, Bane)`;
         text-transform: uppercase;
       }
 
+      .deployment-card,
+      .movement-card,
+      .effect-card {
+        display: grid;
+        gap: 8px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: #fbfcfd;
+        padding: 9px;
+      }
+
+      .deployment-line,
+      .effect-line {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 8px;
+        align-items: center;
+      }
+
+      .deployment-line strong,
+      .effect-line strong {
+        display: block;
+        font-size: .98rem;
+      }
+
+      .deployment-line small,
+      .effect-line small {
+        display: block;
+        color: var(--muted);
+        font-weight: 750;
+        line-height: 1.25;
+      }
+
+      .deployment-line button,
+      .effect-line button {
+        min-height: 36px;
+        padding: 0 10px;
+        font-size: .78rem;
+      }
+
+      .movement-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 6px;
+      }
+
+      .movement-grid span {
+        border-radius: 8px;
+        background: var(--soft);
+        padding: 8px;
+      }
+
+      .movement-grid b,
+      .movement-grid small {
+        display: block;
+      }
+
+      .movement-grid b {
+        font-size: 1.08rem;
+        line-height: 1;
+      }
+
+      .movement-grid small {
+        color: var(--muted);
+        font-size: .66rem;
+        font-weight: 900;
+        text-transform: uppercase;
+      }
+
+      .turn-controls {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 6px;
+      }
+
+      .status-command {
+        display: grid;
+        grid-template-columns: 34px minmax(0, 1fr);
+        align-items: center;
+        gap: 8px;
+        min-height: 50px;
+        text-align: left;
+      }
+
+      .status-icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 28px;
+        height: 28px;
+        border-radius: 8px;
+        background: #dfe6ea;
+        color: var(--ink);
+        font-weight: 950;
+      }
+
+      .status-command small {
+        display: block;
+        color: var(--muted);
+        font-size: .66rem;
+        font-weight: 900;
+        text-transform: uppercase;
+      }
+
+      .status-command.ready .status-icon { background: var(--primary-soft); color: var(--primary); }
+      .status-command.shaken .status-icon { background: #fff1d3; color: var(--warn); }
+      .status-command.stunned .status-icon { background: #f7dedb; color: var(--danger); }
+      .status-command.destroyed .status-icon { background: #e4e7ec; color: #475467; }
+
+      .attack-mode-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 6px;
+      }
+
+      .attack-mode-grid button {
+        min-height: 38px;
+        padding: 0 8px;
+        font-size: .8rem;
+      }
+
+      .prep-grid {
+        display: grid;
+        gap: 8px;
+      }
+
+      .effect-buttons {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 6px;
+      }
+
+      .effect-buttons.two {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .effect-buttons button {
+        min-height: 36px;
+        padding: 0 8px;
+        font-size: .78rem;
+      }
+
       .action-strip {
         display: grid;
         grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -983,15 +1131,13 @@ Spit Venom (18", A2, Blast(3), Bane), Stomp (A4, AP(1)), Toxic Bite (A6, Bane)`;
       }
 
       .step {
-        grid-template-columns: 32px minmax(0, 1fr);
+        grid-template-columns: minmax(0, 1fr);
         gap: 8px;
         padding: 8px;
       }
 
       .step b:first-child {
-        width: 32px;
-        height: 32px;
-        font-size: .85rem;
+        display: none;
       }
 
       .step p,
@@ -1083,6 +1229,14 @@ Spit Venom (18", A2, Blast(3), Bane), Stomp (A4, AP(1)), Toxic Bite (A6, Bane)`;
         .pill, .chip { min-height: 25px; padding: 0 7px; font-size: .7rem; }
         .mini-stats b { font-size: .9rem; }
         .mini-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .movement-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .deployment-line,
+        .effect-line { grid-template-columns: 1fr; }
+        .deployment-line button,
+        .effect-line button { width: 100%; }
+        .attack-mode-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+        .effect-buttons,
+        .effect-buttons.two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
         .stats, .math-grid { gap: 6px; }
         .stat, .math-box { padding: 8px; }
         .stat strong, .math-box strong { font-size: 1.05rem; }
@@ -1161,6 +1315,8 @@ Spit Venom (18", A2, Blast(3), Bane), Stomp (A4, AP(1)), Toxic Bite (A6, Bane)`;
     const tough = ruleRating(unit, "Tough", 1);
     const woundText = tough > 1 ? `${unit.wounds || 0}/${tough} wounds` : "1 wound removes 1 model";
     const morale = moraleState(unit);
+    const deployment = deploymentState(unit);
+    const status = statusMeta(unit);
     const shownRules = importantRules(unit).slice(0, 6);
     const hiddenRuleCount = Math.max(0, rules.length - shownRules.length);
 
@@ -1170,7 +1326,7 @@ Spit Venom (18", A2, Blast(3), Bane), Stomp (A4, AP(1)), Toxic Bite (A6, Bane)`;
           <div class="unit-art focus-art" style="${unitArtStyle(unit)}"><span>${escapeHtml(unitArtLabel(unit))}</span></div>
           <div class="focus-copy">
             <div class="focus-topline">
-              <span class="kicker">${sideLabel(unit.side)} - ${dead ? "Destroyed" : unit.activated ? "Done" : unit.status}</span>
+              <span class="kicker">${sideLabel(unit.side)} - ${dead ? "Destroyed" : deployment.label}</span>
               <div class="focus-buttons">
                 <button type="button" data-command="home">All</button>
                 <button type="button" data-command="choose-art">Image</button>
@@ -1181,13 +1337,14 @@ Spit Venom (18", A2, Blast(3), Bane), Stomp (A4, AP(1)), Toxic Bite (A6, Bane)`;
             <p class="muted">${unit.currentModels}/${unit.startModels} models - Q${unit.quality}+ D${unit.defense}+ - ${escapeHtml(woundText)}</p>
             <div class="pill-row">
               <span class="pill ${unit.side}">${sideLabel(unit.side)}</span>
+              <span class="pill ${deployment.className}">${deployment.label}</span>
               <span class="pill ${unit.activated ? "done" : ""}">${unit.activated ? "Done" : "Ready"}</span>
               <span class="pill ${morale.half ? "bad" : ""}">${morale.half ? "Half" : "Above Half"}</span>
               ${dead ? `<span class="pill bad">Dead</span>` : ""}
             </div>
             <div class="mini-stats">
-              <span><b>${actionLabel(state.action)}</b><small>Action</small></span>
-              <span><b>${state.tired ? "Tired" : "Fresh"}</b><small>Move state</small></span>
+              <span><b>${deployment.label}</b><small>Deployment</small></span>
+              <span><b>${status.label}</b><small>Status</small></span>
               <span><b>${morale.failLabel}</b><small>Failed morale</small></span>
             </div>
           </div>
@@ -1195,16 +1352,9 @@ Spit Venom (18", A2, Blast(3), Bane), Stomp (A4, AP(1)), Toxic Bite (A6, Bane)`;
 
         ${state.importOpen ? renderImportBox() : ""}
 
-        <div class="action-strip" aria-label="Unit actions">
-          ${ACTIONS.map(([key, label]) => `<button type="button" class="${key === state.action ? "is-active" : ""}" data-action="${key}">${escapeHtml(label)}</button>`).join("")}
-        </div>
-
-        <div class="compact-actions">
-          <button type="button" data-command="done">${unit.activated ? "Ready" : "Done"}</button>
-          <button type="button" class="${state.tired ? "is-active" : ""}" data-command="tired">${state.tired ? "Tired" : "Fresh"}</button>
-          <button type="button" data-command="minus-model">- Model</button>
-          <button type="button" data-command="status">Status</button>
-        </div>
+        ${renderDeploymentBlock(unit)}
+        ${renderMovementBlock(unit)}
+        ${renderTurnControls(unit)}
 
         <div class="chips key-rules">
           ${shownRules.length ? shownRules.map((rule) => `<span class="chip">${escapeHtml(rule)}</span>`).join("") : `<span class="chip">No rules</span>`}
@@ -1223,9 +1373,60 @@ Spit Venom (18", A2, Blast(3), Bane), Stomp (A4, AP(1)), Toxic Bite (A6, Bane)`;
     saveState();
   }
 
+  function renderDeploymentBlock(unit) {
+    if (unit.deployed || unit.currentModels <= 0) return "";
+    const deployment = deploymentState(unit);
+    return `
+      <section class="deployment-card">
+        <div class="deployment-line">
+          <div>
+            <span class="kicker">${escapeHtml(deployment.label)}</span>
+            <strong>${escapeHtml(deployment.title)}</strong>
+            <small>${escapeHtml(deployment.detail)}</small>
+          </div>
+          <button type="button" class="primary" data-command="deploy-unit">${escapeHtml(deployment.button)}</button>
+        </div>
+      </section>
+    `;
+  }
+
+  function renderMovementBlock(unit) {
+    const movement = movementProfile(unit);
+    return `
+      <section class="movement-card">
+        <div class="movement-grid">
+          <span><b>${movement.full}"</b><small>Full move</small></span>
+          <span><b>${movement.shoot}"</b><small>Move + shoot</small></span>
+          <span><b>${movement.charge}"</b><small>Charge</small></span>
+          ${movement.scout ? `<span><b>${movement.scout}"</b><small>Scout deploy</small></span>` : ""}
+          ${movement.ambush ? `<span><b>R2+</b><small>Ambush</small></span>` : ""}
+        </div>
+      </section>
+    `;
+  }
+
+  function renderTurnControls(unit) {
+    const status = statusMeta(unit);
+    return `
+      <div class="turn-controls">
+        <button type="button" data-command="done">${unit.activated ? "Ready" : "Done"}</button>
+        <button type="button" class="${state.tired ? "is-active" : ""}" data-command="tired">${state.tired ? "Fatigued" : "Fresh"}</button>
+        <button type="button" class="status-command ${status.key}" data-command="status">
+          <span class="status-icon">${escapeHtml(status.icon)}</span>
+          <span><b>${escapeHtml(status.label)}</b><small>Tap to change</small></span>
+        </button>
+        <button type="button" data-command="minus-model">- Model</button>
+        <button type="button" class="${isAttackAction(state.action) ? "is-active" : ""}" data-command="set-attack">Attack</button>
+        <button type="button" class="${state.action === "defend" ? "is-active" : ""}" data-command="set-defend">Defend</button>
+        <button type="button" class="${state.action === "morale" ? "is-active" : ""}" data-command="set-morale">Morale</button>
+      </div>
+    `;
+  }
+
   function renderUnitDeck() {
     const units = sortedUnits();
     const readyCount = units.filter((unit) => unit.currentModels > 0 && !unit.activated).length;
+    const undeployed = units.filter((unit) => unit.currentModels > 0 && !unit.deployed).length;
     return `
       <section class="play-card">
         <div class="unit-head">
@@ -1239,6 +1440,14 @@ Spit Venom (18", A2, Blast(3), Bane), Stomp (A4, AP(1)), Toxic Bite (A6, Bane)`;
           </div>
         </div>
         ${state.importOpen ? renderImportBox() : ""}
+        ${undeployed ? `
+          <section class="deployment-card">
+            <div>
+              <span class="kicker">Deployment order</span>
+              <p>Alternate normal deployment first. Units with Scout deploy after all non-scout units. Ambush stays off table until round 2+.</p>
+            </div>
+          </section>
+        ` : ""}
         <div class="deck-grid">
           ${units.map(renderDeckCard).join("")}
         </div>
@@ -1250,17 +1459,19 @@ Spit Venom (18", A2, Blast(3), Bane), Stomp (A4, AP(1)), Toxic Bite (A6, Bane)`;
   function renderDeckCard(unit) {
     const dead = unit.currentModels <= 0;
     const morale = moraleState(unit);
+    const deployment = deploymentState(unit);
     return `
       <button type="button" class="deck-card art-card ${unit.activated ? "done" : ""} ${dead ? "dead" : ""}" data-unit="${unit.id}" aria-label="${escapeHtml(unit.name)}">
         <div class="deck-art" style="${unitArtStyle(unit)}"><span>${escapeHtml(unitArtLabel(unit))}</span></div>
         <div class="deck-overlay">
           <div>
-            <span class="kicker">${sideLabel(unit.side)} - ${dead ? "Destroyed" : unit.activated ? "Done" : unit.status}</span>
+            <span class="kicker">${sideLabel(unit.side)} - ${dead ? "Destroyed" : deployment.label}</span>
             <strong>${escapeHtml(unit.name)}</strong>
           </div>
           <div class="deck-bottom">
             <span>${unit.currentModels}/${unit.startModels}</span>
             <span>Q${unit.quality}+ D${unit.defense}+</span>
+            <span>${deployment.label}</span>
             <span>${morale.half ? "Half" : "Above Half"}</span>
           </div>
         </div>
@@ -1322,17 +1533,31 @@ Spit Venom (18", A2, Blast(3), Bane), Stomp (A4, AP(1)), Toxic Bite (A6, Bane)`;
   }
 
   function renderWeaponBlock(unit, weapons, weapon) {
-    if (!["shoot", "charge", "melee"].includes(state.action)) return "";
+    if (!isAttackAction(state.action)) return "";
+    const ranged = getLegalWeapons(unit, "shoot");
+    const melee = getLegalWeapons(unit, "charge");
+    const movement = movementProfile(unit);
     const kind = state.action === "shoot" ? "Ranged weapons" : "Melee weapons";
+    const hint = state.action === "shoot"
+      ? `Move up to ${movement.shoot}" and use ranged weapons only.`
+      : state.action === "charge"
+        ? `Charge up to ${movement.charge}", then resolve charge effects and melee weapons.`
+        : "Use melee weapons only. No ranged attacks in this action.";
     return `
       <section class="block">
         <div class="block-head">
-          <h3>${kind}</h3>
-          <span class="kicker">${weapons.length ? `${weapons.length} legal` : "None"}</span>
+          <h3>Attacks</h3>
+          <span class="kicker">${kind}</span>
         </div>
+        <div class="attack-mode-grid">
+          <button type="button" class="${state.action === "shoot" ? "is-active" : ""}" data-action="shoot" ${ranged.length ? "" : "disabled"}>Shoot</button>
+          <button type="button" class="${state.action === "charge" ? "is-active" : ""}" data-action="charge" ${melee.length ? "" : "disabled"}>Charge</button>
+          <button type="button" class="${state.action === "melee" ? "is-active" : ""}" data-action="melee" ${melee.length ? "" : "disabled"}>Melee</button>
+        </div>
+        <div class="callout">${escapeHtml(hint)}</div>
         <div class="weapons">
           ${weapons.length ? weapons.map((item) => `
-            <button type="button" class="weapon ${item.id === weapon?.id ? "is-active" : ""}" data-weapon="${item.id}">
+            <button type="button" class="weapon ${item.id === weapon?.id ? "is-active" : ""}" data-weapon="${item.id}" data-weapon-action="${state.action}">
               <strong>${escapeHtml(item.name)}</strong>
               <small>${escapeHtml(weaponSummary(unit, item, state.action))}</small>
             </button>
@@ -1342,24 +1567,93 @@ Spit Venom (18", A2, Blast(3), Bane), Stomp (A4, AP(1)), Toxic Bite (A6, Bane)`;
     `;
   }
 
+  function renderAttackPrep(unit, weapon) {
+    const cards = [];
+    const impact = ruleRating(unit, "Impact", 0);
+    const meleeAction = state.action === "charge" || state.action === "melee";
+    const unpredictable = meleeAction && hasRule(unit, "Unpredictable Fighter");
+
+    if (state.action === "charge" && impact) {
+      const needed = state.tired ? 6 : 2;
+      cards.push(`
+        <div class="effect-card">
+          <div class="effect-line">
+            <div>
+              <span class="kicker">Charge effect</span>
+              <strong>Impact(${impact}): roll ${impact} dice, hit on ${needed}+</strong>
+              <small>${state.impactHits ? `${state.impactHits} impact hit${state.impactHits === 1 ? "" : "s"} marked.` : "Resolve this before normal weapon attacks."}</small>
+            </div>
+            <div class="effect-buttons">
+              <button type="button" data-bump="impactHits" data-by="1">Hit +</button>
+              <button type="button" data-bump="impactHits" data-by="-1">Hit -</button>
+              <button type="button" data-command="clear-impact">Clear</button>
+            </div>
+          </div>
+        </div>
+      `);
+    }
+
+    if (unpredictable) {
+      const result = state.unpredictableResult;
+      const applied = result === "ap"
+        ? "AP(+1) is included in the AP/save math below."
+        : result === "hit"
+          ? "+1 to hit is included in the hit roll below."
+          : "Roll one die before melee attacks, then tap the result.";
+      cards.push(`
+        <div class="effect-card">
+          <div class="effect-line">
+            <div>
+              <span class="kicker">Melee rule</span>
+              <strong>Unpredictable Fighter</strong>
+              <small>${escapeHtml(applied)}</small>
+            </div>
+            <div class="effect-buttons">
+              <button type="button" class="${result === "ap" ? "is-active" : ""}" data-command="unpredictable-ap">1-3 AP +1</button>
+              <button type="button" class="${result === "hit" ? "is-active" : ""}" data-command="unpredictable-hit">4-6 Hit +1</button>
+              <button type="button" data-command="unpredictable-clear">Clear</button>
+            </div>
+          </div>
+        </div>
+      `);
+    }
+
+    if (hasRule(unit, "Bestial") && meleeAction) {
+      cards.push(`
+        <div class="effect-card">
+          <div class="effect-line">
+            <div>
+              <span class="kicker">Opponent save reminder</span>
+              <strong>Bestial</strong>
+              <small>Tell your opponent to reroll unmodified defense rolls of 6 against this unit's weapons.</small>
+            </div>
+          </div>
+        </div>
+      `);
+    }
+
+    return cards.length ? `<div class="prep-grid">${cards.join("")}</div>` : "";
+  }
+
   function renderAttackBlock(unit, weapon, target) {
     if (!["shoot", "charge", "melee"].includes(state.action)) return "";
     if (!weapon) return `<div class="callout warn">Pick an action with a legal weapon to see attack numbers.</div>`;
 
     const dice = attackDice(weapon);
     const hit = hitNeeded(unit, weapon, state.action);
-    const baseAp = Math.max(0, numberValue(weapon.ap, 0));
+    const baseAp = effectiveWeaponAp(unit, weapon, state.action);
     const rending = weaponHas(weapon, "Rending");
     const bane = weaponHas(weapon, "Bane");
     const rendingHits = rending ? Math.min(numberValue(state.rendingHits), numberValue(state.hits)) : 0;
     const normalHits = Math.max(0, numberValue(state.hits) - rendingHits);
-    const tell = buildAttackTell(target, weapon, normalHits, rendingHits, bane);
+    const tell = buildAttackTell(target, weapon, normalHits, rendingHits, bane, unit);
     const saveBoxTitle = target ? "Target Save" : "Base AP";
     const saveBoxValue = target ? saveNeededText(target.defense, baseAp) : baseAp;
     const saveBoxDetail = target ? saveNeededDetail(target.defense, baseAp) : (rending ? "Rending 6s are AP 4" : "Normal hits");
 
     return `
       <section class="block">
+        ${renderAttackPrep(unit, weapon)}
         <div class="math-grid">
           <div class="math-box"><span>Attack Dice</span><strong>${dice}</strong><small>${escapeHtml(weapon.name)}</small></div>
           <div class="math-box"><span>Hit Roll</span><strong>${hit}+</strong><small>${hitFaces(hit)}</small></div>
@@ -1492,10 +1786,11 @@ Spit Venom (18", A2, Blast(3), Bane), Stomp (A4, AP(1)), Toxic Bite (A6, Bane)`;
         </button>
         ${units.map((unit) => {
           const dead = unit.currentModels <= 0;
+          const deployment = deploymentState(unit);
           return `
             <button type="button" class="unit-thumb ${unit.activated ? "done" : ""} ${dead ? "dead" : ""}" style="${unitArtStyle(unit)}" data-unit="${unit.id}">
               <strong>${escapeHtml(unit.name)}</strong>
-              <span>${unit.currentModels}/${unit.startModels} - ${unit.side === "mine" ? "Mine" : "Them"}${unit.activated ? " - done" : ""}</span>
+              <span>${unit.currentModels}/${unit.startModels} - ${deployment.label}${unit.activated ? " - done" : ""}</span>
             </button>
           `;
         }).join("")}
@@ -1519,6 +1814,7 @@ Spit Venom (18", A2, Blast(3), Bane), Stomp (A4, AP(1)), Toxic Bite (A6, Bane)`;
     const fast = hasRule(unit, "Fast");
     const flying = hasRule(unit, "Flying");
     const strider = hasRule(unit, "Strider");
+    const movement = movementProfile(unit);
 
     if (action === "deploy") {
       if (hasRule(unit, "Scout")) {
@@ -1532,15 +1828,15 @@ Spit Venom (18", A2, Blast(3), Bane), Stomp (A4, AP(1)), Toxic Bite (A6, Bane)`;
     }
 
     if (action === "shoot") {
-      steps.push(step("Move + Shoot", "Move up to half movement, then use ranged weapons only.", "This action does not include melee attacks."));
-      if (fast) steps.push(step("Fast", "Fast changes movement distance.", "Reminder: +2\" on Advance and +4\" on Rush/Charge."));
+      steps.push(step("Shoot", `Move up to ${movement.shoot}\", then use ranged weapons only.`, "This action does not include melee attacks."));
+      if (fast) steps.push(step("Fast", `Fast is included: full move ${movement.full}\", move+shoot ${movement.shoot}\".`, ""));
       if (flying || strider) steps.push(step("Terrain", `${[flying ? "Flying" : "", strider ? "Strider" : ""].filter(Boolean).join(" and ")} may change terrain handling.`, ""));
     }
 
     if (action === "charge") {
-      steps.push(step("Charge", "Move into melee, then resolve charge-only effects before normal melee weapon attacks.", "Ranged weapons are not part of this action."));
-      if (fast) steps.push(step("Fast", "Fast may extend the charge distance.", "Reminder: +4\" when using Rush/Charge."));
-      if (impact) steps.push(step(`Impact(${impact})`, `Roll ${impact} dice before weapon attacks. Hits are ${state.tired ? "6+" : "2+"}.`, state.tired ? "Tired/fatigued changes Impact from 2+ to 6+." : "If tired/fatigued, use 6+ instead."));
+      steps.push(step("Charge", `Move up to ${movement.charge}\" into melee, then resolve charge effects before normal melee weapon attacks.`, "Ranged weapons are not part of this action."));
+      if (fast) steps.push(step("Fast", `Fast is included in the ${movement.charge}\" charge distance shown above.`, ""));
+      if (impact) steps.push(step(`Impact(${impact})`, `Roll ${impact} dice before weapon attacks. Hit on ${state.tired ? "6+" : "2+"}.`, state.tired ? "Fatigued changes Impact from 2+ to 6+." : "Mark Impact hits in the attack panel."));
       if (hasRule(unit, "Furious")) steps.push(step("Furious", "On a charge, unmodified 6s to hit in melee deal 1 extra hit.", "Only original 6s count."));
     }
 
@@ -1565,7 +1861,10 @@ Spit Venom (18", A2, Blast(3), Bane), Stomp (A4, AP(1)), Toxic Bite (A6, Bane)`;
     }
 
     if (weapon && ["shoot", "charge", "melee"].includes(action)) {
-      steps.push(step(weapon.name, `Roll ${attackDice(weapon)} dice. Hits are ${hitNeeded(unit, weapon, action)}+.`, `${weapon.range ? `Range ${weapon.range}. ` : ""}Base AP(${weapon.ap || 0}).`));
+      if ((action === "charge" || action === "melee") && hasRule(unit, "Unpredictable Fighter")) {
+        steps.push(step("Unpredictable Fighter", "Roll one die before melee attacks: 1-3 gives AP(+1), 4-6 gives +1 to hit.", "Tap the result in the attack panel so the math updates."));
+      }
+      steps.push(step(weapon.name, `Roll ${attackDice(weapon)} dice. Hits are ${hitNeeded(unit, weapon, action)}+.`, `${weapon.range ? `Range ${weapon.range}. ` : ""}AP(${effectiveWeaponAp(unit, weapon, action)}).`));
       if (weaponHas(weapon, "Reliable")) steps.push(step("Reliable", "This attack hits on 2+.", "The hit number already includes this."));
       if (weaponHas(weapon, "Precise")) steps.push(step("Precise", "This attack gets +1 to hit.", "The hit number already includes this."));
       if (hasRule(unit, "Good Shot") && action === "shoot") steps.push(step("Good Shot", "This unit gets +1 to hit when shooting.", "The hit number already includes this."));
@@ -1589,8 +1888,8 @@ Spit Venom (18", A2, Blast(3), Bane), Stomp (A4, AP(1)), Toxic Bite (A6, Bane)`;
     return steps.length ? steps : [step("Ready", "Pick an action to see the relevant rules.", "")];
   }
 
-  function buildAttackTell(target, weapon, normalHits, rendingHits, bane) {
-    const ap = Math.max(0, numberValue(weapon.ap, 0));
+  function buildAttackTell(target, weapon, normalHits, rendingHits, bane, unit) {
+    const ap = effectiveWeaponAp(unit, weapon, state.action);
     const lines = [];
     if (!target) {
       lines.push(`Report ${normalHits + rendingHits} hit${normalHits + rendingHits === 1 ? "" : "s"}.`);
@@ -1627,6 +1926,8 @@ Spit Venom (18", A2, Blast(3), Bane), Stomp (A4, AP(1)), Toxic Bite (A6, Bane)`;
       state.action = action.dataset.action;
       state.hits = 0;
       state.rendingHits = 0;
+      if (state.action !== "charge") state.impactHits = 0;
+      if (state.action !== "charge" && state.action !== "melee") state.unpredictableResult = "";
       ensureLegalWeapon();
       render();
       return;
@@ -1652,6 +1953,7 @@ Spit Venom (18", A2, Blast(3), Bane), Stomp (A4, AP(1)), Toxic Bite (A6, Bane)`;
 
     const weaponButton = event.target.closest("[data-weapon]");
     if (weaponButton) {
+      if (weaponButton.dataset.weaponAction) state.action = weaponButton.dataset.weaponAction;
       state.weaponId = weaponButton.dataset.weapon;
       state.hits = 0;
       state.rendingHits = 0;
@@ -1745,6 +2047,8 @@ Spit Venom (18", A2, Blast(3), Bane), Stomp (A4, AP(1)), Toxic Bite (A6, Bane)`;
       state.weaponId = "";
       state.hits = 0;
       state.rendingHits = 0;
+      state.impactHits = 0;
+      state.unpredictableResult = "";
       render();
       return;
     }
@@ -1784,6 +2088,64 @@ Spit Venom (18", A2, Blast(3), Bane), Stomp (A4, AP(1)), Toxic Bite (A6, Bane)`;
       return;
     }
     if (!unit) return;
+
+    if (command === "deploy-unit") {
+      unit.deployed = true;
+      addLog("Deployed", unit.name);
+      render();
+      return;
+    }
+
+    if (command === "set-attack") {
+      if (!isAttackAction(state.action)) {
+        const melee = getLegalWeapons(unit, "charge");
+        const ranged = getLegalWeapons(unit, "shoot");
+        state.action = melee.length ? "charge" : ranged.length ? "shoot" : "charge";
+      }
+      ensureLegalWeapon();
+      render();
+      return;
+    }
+
+    if (command === "set-defend") {
+      state.action = "defend";
+      state.impactHits = 0;
+      state.unpredictableResult = "";
+      render();
+      return;
+    }
+
+    if (command === "set-morale") {
+      state.action = "morale";
+      state.impactHits = 0;
+      state.unpredictableResult = "";
+      render();
+      return;
+    }
+
+    if (command === "clear-impact") {
+      state.impactHits = 0;
+      render();
+      return;
+    }
+
+    if (command === "unpredictable-ap") {
+      state.unpredictableResult = state.unpredictableResult === "ap" ? "" : "ap";
+      render();
+      return;
+    }
+
+    if (command === "unpredictable-hit") {
+      state.unpredictableResult = state.unpredictableResult === "hit" ? "" : "hit";
+      render();
+      return;
+    }
+
+    if (command === "unpredictable-clear") {
+      state.unpredictableResult = "";
+      render();
+      return;
+    }
 
     if (command === "done") {
       unit.activated = !unit.activated;
@@ -1981,13 +2343,26 @@ Spit Venom (18", A2, Blast(3), Bane), Stomp (A4, AP(1)), Toxic Bite (A6, Bane)`;
   }
 
   function sortedUnits() {
+    const deploying = state.units.some((unit) => unit.currentModels > 0 && !unit.deployed);
     return [...state.units].sort((a, b) => {
+      if (deploying) {
+        const deploy = deploymentSortGroup(a) - deploymentSortGroup(b);
+        if (deploy) return deploy;
+      }
       const group = unitSortGroup(a) - unitSortGroup(b);
       if (group) return group;
       const side = (a.side === "mine" ? 0 : 1) - (b.side === "mine" ? 0 : 1);
       if (side) return side;
       return a.name.localeCompare(b.name, undefined, { sensitivity: "base" });
     });
+  }
+
+  function deploymentSortGroup(unit) {
+    if (unit.currentModels <= 0) return 5;
+    if (unit.deployed) return 3;
+    if (hasRule(unit, "Ambush")) return 2;
+    if (hasRule(unit, "Scout")) return 1;
+    return 0;
   }
 
   function unitSortGroup(unit) {
@@ -2047,7 +2422,16 @@ Spit Venom (18", A2, Blast(3), Bane), Stomp (A4, AP(1)), Toxic Bite (A6, Bane)`;
     if (weaponHas(weapon, "Reliable")) needed = 2;
     if (weaponHas(weapon, "Precise")) needed -= 1;
     if (hasRule(unit, "Good Shot") && action === "shoot") needed -= 1;
+    if ((action === "charge" || action === "melee") && hasRule(unit, "Unpredictable Fighter") && state.unpredictableResult === "hit") needed -= 1;
     return clampRoll(needed);
+  }
+
+  function effectiveWeaponAp(unit, weapon, action) {
+    const base = Math.max(0, numberValue(weapon?.ap, 0));
+    const unpredictableAp = (action === "charge" || action === "melee")
+      && hasRule(unit, "Unpredictable Fighter")
+      && state.unpredictableResult === "ap";
+    return base + (unpredictableAp ? 1 : 0);
   }
 
   function attackDice(weapon) {
@@ -2055,7 +2439,70 @@ Spit Venom (18", A2, Blast(3), Bane), Stomp (A4, AP(1)), Toxic Bite (A6, Bane)`;
   }
 
   function weaponSummary(unit, weapon, action) {
-    return `${attackDice(weapon)} dice, Q${hitNeeded(unit, weapon, action)}+, AP ${weapon.ap || 0}${weapon.range ? `, ${weapon.range}` : ""}${weapon.special ? `, ${weapon.special}` : ""}`;
+    return `${attackDice(weapon)} dice, Q${hitNeeded(unit, weapon, action)}+, AP ${effectiveWeaponAp(unit, weapon, action)}${weapon.range ? `, ${weapon.range}` : ""}${weapon.special ? `, ${weapon.special}` : ""}`;
+  }
+
+  function isAttackAction(action) {
+    return ATTACK_ACTIONS.some(([key]) => key === action);
+  }
+
+  function movementProfile(unit) {
+    const full = hasRule(unit, "Fast") ? 18 : 12;
+    return {
+      full,
+      shoot: Math.ceil(full / 2),
+      charge: full,
+      scout: hasRule(unit, "Scout") ? 24 : 0,
+      ambush: hasRule(unit, "Ambush")
+    };
+  }
+
+  function deploymentState(unit) {
+    if (unit.deployed) {
+      return {
+        label: "Deployed",
+        className: "mine",
+        title: "Already deployed",
+        detail: "This unit is on the table.",
+        button: "Deployed"
+      };
+    }
+    if (hasRule(unit, "Ambush")) {
+      return {
+        label: "Ambush",
+        className: "bad",
+        title: "Keep off table",
+        detail: "Do not deploy at the start. Bring this unit in from round 2+ when you choose.",
+        button: "Arrive"
+      };
+    }
+    if (hasRule(unit, "Scout")) {
+      return {
+        label: "Scout deploy",
+        className: "opponent",
+        title: "Deploy after normal units",
+        detail: "After all non-scout units on both sides are deployed, both sides deploy Scout units.",
+        button: "Deploy"
+      };
+    }
+    return {
+      label: "Undeployed",
+      className: "",
+      title: "Deploy during setup",
+      detail: "Alternate deployment with your opponent. Mark deployed once this unit is placed.",
+      button: "Deploy"
+    };
+  }
+
+  function statusMeta(unit) {
+    const key = unit.currentModels <= 0 ? "destroyed" : String(unit.status || "ready").toLowerCase();
+    const map = {
+      ready: { key: "ready", label: "Ready", icon: "OK" },
+      shaken: { key: "shaken", label: "Shaken", icon: "!" },
+      stunned: { key: "stunned", label: "Stunned", icon: "Z" },
+      destroyed: { key: "destroyed", label: "Destroyed", icon: "X" }
+    };
+    return map[key] || map.ready;
   }
 
   function targetMeta(unit) {
