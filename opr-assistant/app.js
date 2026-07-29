@@ -65,6 +65,8 @@ Spit Venom (18", A2, Blast(3), Bane), Stomp (A4, AP(1)), Toxic Bite (A6, Bane)`;
       weaponId: "",
       targetId: "",
       targetOpen: false,
+      moraleOpen: false,
+      damageOpen: false,
       unpredictableResult: "",
       impactHits: 0,
       importSide: "mine",
@@ -97,6 +99,9 @@ Spit Venom (18", A2, Blast(3), Bane), Stomp (A4, AP(1)), Toxic Bite (A6, Bane)`;
     next.log = Array.isArray(raw?.log) ? raw.log : [];
     next.importSide = normalizeSide(next.importSide);
     next.action = ACTIONS.some(([key]) => key === next.action) ? next.action : "charge";
+    next.moraleOpen = next.action === "morale" || Boolean(next.moraleOpen);
+    next.damageOpen = next.action === "defend" || Boolean(next.damageOpen);
+    if (!isAttackAction(next.action)) next.action = "charge";
     next.contextOpen = false;
     return next;
   }
@@ -242,6 +247,10 @@ Spit Venom (18", A2, Blast(3), Bane), Stomp (A4, AP(1)), Toxic Bite (A6, Bane)`;
       .top-buttons {
         display: flex;
         gap: 7px;
+      }
+
+      .opr-shell:not(.is-home) .top-buttons {
+        display: none;
       }
 
       .top-buttons button {
@@ -823,6 +832,8 @@ Spit Venom (18", A2, Blast(3), Bane), Stomp (A4, AP(1)), Toxic Bite (A6, Bane)`;
       .state-button.destroyed { background: #e4e7ec; color: #475467; }
       .state-button.morale.steady { background: var(--soft); color: var(--ink); }
       .state-button.morale.half { background: #fff1d3; color: var(--warn); }
+      .state-button.wounds.clean { background: var(--soft); color: var(--ink); }
+      .state-button.wounds.marked { background: #fff1d3; color: var(--warn); }
       .state-button.is-active { border-color: currentColor; box-shadow: inset 0 0 0 1px currentColor; }
 
       .state-icon {
@@ -935,8 +946,12 @@ Spit Venom (18", A2, Blast(3), Bane), Stomp (A4, AP(1)), Toxic Bite (A6, Bane)`;
 
       .turn-controls {
         display: grid;
-        grid-template-columns: repeat(4, minmax(0, 1fr));
+        grid-template-columns: repeat(3, minmax(0, 1fr));
         gap: 6px;
+      }
+
+      .turn-controls button {
+        white-space: nowrap;
       }
 
       .status-command {
@@ -1342,6 +1357,7 @@ Spit Venom (18", A2, Blast(3), Bane), Stomp (A4, AP(1)), Toxic Bite (A6, Bane)`;
   }
 
   function bindEvents() {
+    document.addEventListener("pointerdown", handlePointerDown);
     document.addEventListener("click", handleClick);
     document.addEventListener("input", handleInput);
     document.addEventListener("change", handleChange);
@@ -1350,6 +1366,8 @@ Spit Venom (18", A2, Blast(3), Bane), Stomp (A4, AP(1)), Toxic Bite (A6, Bane)`;
   function render() {
     const app = document.getElementById("app");
     if (!app) return;
+    const shell = document.querySelector(".opr-shell");
+    shell?.classList.toggle("is-home", !state.units.length || !state.contextOpen);
 
     if (!state.units.length) {
       app.innerHTML = `
@@ -1370,6 +1388,7 @@ Spit Venom (18", A2, Blast(3), Bane), Stomp (A4, AP(1)), Toxic Bite (A6, Bane)`;
     const unit = getActiveUnit();
     if (!state.contextOpen || !unit) {
       state.contextOpen = false;
+      shell?.classList.add("is-home");
       app.innerHTML = renderUnitDeck();
       saveState();
       return;
@@ -1391,7 +1410,6 @@ Spit Venom (18", A2, Blast(3), Bane), Stomp (A4, AP(1)), Toxic Bite (A6, Bane)`;
     const rules = normalizedRules(unit);
     const dead = unit.currentModels <= 0;
     const tough = ruleRating(unit, "Tough", 1);
-    const woundText = tough > 1 ? `${unit.wounds || 0}/${tough} wounds` : "1 wound removes 1 model";
     const morale = moraleState(unit);
     const deployment = deploymentState(unit);
     const status = statusMeta(unit);
@@ -1412,8 +1430,8 @@ Spit Venom (18", A2, Blast(3), Bane), Stomp (A4, AP(1)), Toxic Bite (A6, Bane)`;
               </div>
             </div>
             <h2>${escapeHtml(unit.name)}</h2>
-            <p class="muted">${unit.currentModels}/${unit.startModels} models - Q${unit.quality}+ D${unit.defense}+ - ${escapeHtml(woundText)}</p>
-            ${renderUnitStateRow(unit, deployment, morale, status, dead)}
+            <p class="muted">${unit.currentModels}/${unit.startModels} models - Q${unit.quality}+ D${unit.defense}+</p>
+            ${renderUnitStateRow(unit, deployment, morale, status, dead, tough)}
           </div>
         </div>
 
@@ -1422,6 +1440,8 @@ Spit Venom (18", A2, Blast(3), Bane), Stomp (A4, AP(1)), Toxic Bite (A6, Bane)`;
         ${renderDeploymentBlock(unit)}
         ${renderMovementBlock(unit)}
         ${renderTurnControls(unit)}
+        ${state.moraleOpen ? renderMoraleBlock(unit) : ""}
+        ${state.damageOpen ? renderDefenseBlock(unit) : ""}
 
         <div class="chips key-rules">
           ${shownRules.length ? shownRules.map((rule) => `<span class="chip">${escapeHtml(rule)}</span>`).join("") : `<span class="chip">No rules</span>`}
@@ -1430,7 +1450,7 @@ Spit Venom (18", A2, Blast(3), Bane), Stomp (A4, AP(1)), Toxic Bite (A6, Bane)`;
 
         ${renderTargetBlock(targetChoices, target)}
         ${renderWeaponBlock(unit, weapons, weapon)}
-        ${state.action === "defend" ? renderDefenseBlock(unit) : state.action === "morale" ? renderMoraleBlock(unit) : renderAttackBlock(unit, weapon, target)}
+        ${renderAttackBlock(unit, weapon, target)}
         ${renderSteps(unit, weapon, target)}
         ${renderLog()}
       </section>
@@ -1457,8 +1477,9 @@ Spit Venom (18", A2, Blast(3), Bane), Stomp (A4, AP(1)), Toxic Bite (A6, Bane)`;
     `;
   }
 
-  function renderUnitStateRow(unit, deployment, morale, status, dead) {
+  function renderUnitStateRow(unit, deployment, morale, status, dead, tough) {
     const deploymentClass = dead ? "dead" : unit.deployed ? "deployed" : hasRule(unit, "Ambush") ? "ambush" : "pending";
+    const wounds = Math.max(0, numberValue(unit.wounds, 0));
     return `
       <div class="unit-state-row">
         <span class="state-badge ${deploymentClass}">${escapeHtml(dead ? "Destroyed" : deployment.label)}</span>
@@ -1466,7 +1487,13 @@ Spit Venom (18", A2, Blast(3), Bane), Stomp (A4, AP(1)), Toxic Bite (A6, Bane)`;
           <span class="state-icon">${escapeHtml(status.icon)}</span>
           ${escapeHtml(status.label)}
         </button>
-        <button type="button" class="state-button morale ${morale.half ? "half" : "steady"} ${state.action === "morale" ? "is-active" : ""}" data-command="set-morale" title="Show morale result">
+        ${tough > 1 ? `
+          <button type="button" class="state-button wounds ${wounds ? "marked" : "clean"} ${state.damageOpen ? "is-active" : ""}" data-command="toggle-damage" title="Track wounds and damage">
+            <span class="state-icon">W</span>
+            ${wounds}/${tough} wounds
+          </button>
+        ` : ""}
+        <button type="button" class="state-button morale ${morale.half ? "half" : "steady"} ${state.moraleOpen ? "is-active" : ""}" data-command="set-morale" title="Show morale result">
           <span class="state-icon">${morale.half ? "!" : "M"}</span>
           ${escapeHtml(morale.failShort)}
         </button>
@@ -1489,13 +1516,11 @@ Spit Venom (18", A2, Blast(3), Bane), Stomp (A4, AP(1)), Toxic Bite (A6, Bane)`;
   }
 
   function renderTurnControls(unit) {
-    const showingAttack = isAttackAction(state.action);
     return `
       <div class="turn-controls">
         <button type="button" data-command="done">${unit.activated ? "Ready" : "Done"}</button>
         <button type="button" class="${state.tired ? "is-active" : ""}" data-command="tired">${state.tired ? "Fatigued" : "Fresh"}</button>
-        <button type="button" data-command="minus-model">- Model</button>
-        <button type="button" class="${state.action === "defend" ? "is-active" : ""}" data-command="${showingAttack ? "set-defend" : "set-attack"}">${showingAttack ? "Defend" : "Attacks"}</button>
+        <button type="button" data-command="minus-model">-1 Model</button>
       </div>
     `;
   }
@@ -1765,6 +1790,10 @@ Spit Venom (18", A2, Blast(3), Bane), Stomp (A4, AP(1)), Toxic Bite (A6, Bane)`;
 
     return `
       <section class="block">
+        <div class="block-head">
+          <h3>Damage</h3>
+          <button type="button" data-command="toggle-damage">Close</button>
+        </div>
         <div class="math-grid">
           <div class="math-box"><span>Incoming Hits</span><strong>${state.incomingHits}</strong><small>After opponent rolls</small></div>
           <div class="math-box"><span>Defense Roll</span><strong>${saveNeededText(unit.defense, ap)}</strong><small>${saveNeededDetail(unit.defense, ap)}</small></div>
@@ -1797,6 +1826,10 @@ Spit Venom (18", A2, Blast(3), Bane), Stomp (A4, AP(1)), Toxic Bite (A6, Bane)`;
     const fearless = hasRule(unit, "Fearless");
     return `
       <section class="block">
+        <div class="block-head">
+          <h3>Morale</h3>
+          <button type="button" data-command="close-morale">Close</button>
+        </div>
         <div class="math-grid">
           <div class="math-box"><span>Morale Roll</span><strong>Q${unit.quality}+</strong><small>${hitFaces(unit.quality)}</small></div>
           <div class="math-box"><span>Strength</span><strong>${morale.half ? "Half" : "Above"}</strong><small>${unit.currentModels}/${unit.startModels} models</small></div>
@@ -2016,6 +2049,9 @@ Spit Venom (18", A2, Blast(3), Bane), Stomp (A4, AP(1)), Toxic Bite (A6, Bane)`;
       state.contextOpen = true;
       state.hits = 0;
       state.rendingHits = 0;
+      state.moraleOpen = false;
+      state.damageOpen = false;
+      if (!isAttackAction(state.action)) state.action = "charge";
       ensureLegalWeapon();
       render();
       return;
@@ -2057,6 +2093,14 @@ Spit Venom (18", A2, Blast(3), Bane), Stomp (A4, AP(1)), Toxic Bite (A6, Bane)`;
 
     const command = event.target.closest("[data-command]");
     if (command) runCommand(command.dataset.command);
+  }
+
+  function handlePointerDown(event) {
+    const command = event.target.closest("[data-command]");
+    if (!command || command.dataset.command !== "apply-damage") return;
+    event.preventDefault();
+    if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
+    runCommand(command.dataset.command);
   }
 
   function handleInput(event) {
@@ -2126,6 +2170,8 @@ Spit Venom (18", A2, Blast(3), Bane), Stomp (A4, AP(1)), Toxic Bite (A6, Bane)`;
       state.rendingHits = 0;
       state.impactHits = 0;
       state.unpredictableResult = "";
+      state.moraleOpen = false;
+      state.damageOpen = false;
       render();
       return;
     }
@@ -2174,6 +2220,8 @@ Spit Venom (18", A2, Blast(3), Bane), Stomp (A4, AP(1)), Toxic Bite (A6, Bane)`;
     }
 
     if (command === "set-attack") {
+      state.moraleOpen = false;
+      state.damageOpen = false;
       if (!isAttackAction(state.action)) {
         const melee = getLegalWeapons(unit, "charge");
         const ranged = getLegalWeapons(unit, "shoot");
@@ -2185,7 +2233,8 @@ Spit Venom (18", A2, Blast(3), Bane), Stomp (A4, AP(1)), Toxic Bite (A6, Bane)`;
     }
 
     if (command === "set-defend") {
-      state.action = "defend";
+      state.damageOpen = !state.damageOpen;
+      if (state.damageOpen) state.moraleOpen = false;
       state.impactHits = 0;
       state.unpredictableResult = "";
       render();
@@ -2193,9 +2242,23 @@ Spit Venom (18", A2, Blast(3), Bane), Stomp (A4, AP(1)), Toxic Bite (A6, Bane)`;
     }
 
     if (command === "set-morale") {
-      state.action = "morale";
+      state.moraleOpen = !state.moraleOpen;
+      if (state.moraleOpen) state.damageOpen = false;
       state.impactHits = 0;
       state.unpredictableResult = "";
+      render();
+      return;
+    }
+
+    if (command === "close-morale") {
+      state.moraleOpen = false;
+      render();
+      return;
+    }
+
+    if (command === "toggle-damage") {
+      state.damageOpen = !state.damageOpen;
+      if (state.damageOpen) state.moraleOpen = false;
       render();
       return;
     }
@@ -2391,6 +2454,8 @@ Spit Venom (18", A2, Blast(3), Bane), Stomp (A4, AP(1)), Toxic Bite (A6, Bane)`;
     state.incomingHits = 0;
     state.failedSaves = 0;
     state.regenPasses = 0;
+    state.damageOpen = false;
+    state.moraleOpen = false;
   }
 
   function ensureActiveUnit() {
