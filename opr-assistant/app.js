@@ -786,6 +786,56 @@ Spit Venom (18", A2, Blast(3), Bane), Stomp (A4, AP(1)), Toxic Bite (A6, Bane)`;
         text-transform: uppercase;
       }
 
+      .unit-state-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+      }
+
+      .state-badge,
+      .state-button {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        min-height: 30px;
+        border-radius: 999px;
+        background: var(--soft);
+        color: var(--ink);
+        padding: 0 9px;
+        font-size: .74rem;
+        font-weight: 900;
+      }
+
+      .state-button {
+        border: 1px solid transparent;
+      }
+
+      .state-badge.deployed { background: var(--primary-soft); color: var(--primary); }
+      .state-badge.pending { background: #eef1ff; color: var(--blue); }
+      .state-badge.ambush { background: #fff1d3; color: var(--warn); }
+      .state-badge.dead { background: #e4e7ec; color: #475467; }
+      .state-badge.ready { background: var(--primary-soft); color: var(--primary); }
+      .state-badge.done { background: #e4e7ec; color: #475467; }
+
+      .state-button.ready { background: var(--primary-soft); color: var(--primary); }
+      .state-button.shaken { background: #fff1d3; color: var(--warn); }
+      .state-button.stunned { background: #f7dedb; color: var(--danger); }
+      .state-button.destroyed { background: #e4e7ec; color: #475467; }
+      .state-button.morale.steady { background: var(--soft); color: var(--ink); }
+      .state-button.morale.half { background: #fff1d3; color: var(--warn); }
+      .state-button.is-active { border-color: currentColor; box-shadow: inset 0 0 0 1px currentColor; }
+
+      .state-icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 20px;
+        height: 20px;
+        border-radius: 7px;
+        background: rgba(255,255,255,.66);
+        font-size: .66rem;
+      }
+
       .deployment-card,
       .movement-card,
       .effect-card {
@@ -855,9 +905,37 @@ Spit Venom (18", A2, Blast(3), Bane), Stomp (A4, AP(1)), Toxic Bite (A6, Bane)`;
         text-transform: uppercase;
       }
 
+      .move-strip {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        align-items: center;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: #fbfcfd;
+        padding: 7px;
+      }
+
+      .move-strip span {
+        display: inline-flex;
+        align-items: baseline;
+        gap: 4px;
+        min-height: 26px;
+        border-radius: 999px;
+        background: var(--soft);
+        padding: 0 8px;
+        font-size: .7rem;
+        font-weight: 900;
+        text-transform: uppercase;
+      }
+
+      .move-strip b {
+        font-size: .92rem;
+      }
+
       .turn-controls {
         display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-template-columns: repeat(4, minmax(0, 1fr));
         gap: 6px;
       }
 
@@ -1326,7 +1404,7 @@ Spit Venom (18", A2, Blast(3), Bane), Stomp (A4, AP(1)), Toxic Bite (A6, Bane)`;
           <div class="unit-art focus-art" style="${unitArtStyle(unit)}"><span>${escapeHtml(unitArtLabel(unit))}</span></div>
           <div class="focus-copy">
             <div class="focus-topline">
-              <span class="kicker">${sideLabel(unit.side)} - ${dead ? "Destroyed" : deployment.label}</span>
+              <span class="kicker">${sideLabel(unit.side)}</span>
               <div class="focus-buttons">
                 <button type="button" data-command="home">All</button>
                 <button type="button" data-command="choose-art">Image</button>
@@ -1335,18 +1413,7 @@ Spit Venom (18", A2, Blast(3), Bane), Stomp (A4, AP(1)), Toxic Bite (A6, Bane)`;
             </div>
             <h2>${escapeHtml(unit.name)}</h2>
             <p class="muted">${unit.currentModels}/${unit.startModels} models - Q${unit.quality}+ D${unit.defense}+ - ${escapeHtml(woundText)}</p>
-            <div class="pill-row">
-              <span class="pill ${unit.side}">${sideLabel(unit.side)}</span>
-              <span class="pill ${deployment.className}">${deployment.label}</span>
-              <span class="pill ${unit.activated ? "done" : ""}">${unit.activated ? "Done" : "Ready"}</span>
-              <span class="pill ${morale.half ? "bad" : ""}">${morale.half ? "Half" : "Above Half"}</span>
-              ${dead ? `<span class="pill bad">Dead</span>` : ""}
-            </div>
-            <div class="mini-stats">
-              <span><b>${deployment.label}</b><small>Deployment</small></span>
-              <span><b>${status.label}</b><small>Status</small></span>
-              <span><b>${morale.failLabel}</b><small>Failed morale</small></span>
-            </div>
+            ${renderUnitStateRow(unit, deployment, morale, status, dead)}
           </div>
         </div>
 
@@ -1390,35 +1457,45 @@ Spit Venom (18", A2, Blast(3), Bane), Stomp (A4, AP(1)), Toxic Bite (A6, Bane)`;
     `;
   }
 
+  function renderUnitStateRow(unit, deployment, morale, status, dead) {
+    const deploymentClass = dead ? "dead" : unit.deployed ? "deployed" : hasRule(unit, "Ambush") ? "ambush" : "pending";
+    return `
+      <div class="unit-state-row">
+        <span class="state-badge ${deploymentClass}">${escapeHtml(dead ? "Destroyed" : deployment.label)}</span>
+        <button type="button" class="state-button ${status.key}" data-command="status" title="Tap to change status">
+          <span class="state-icon">${escapeHtml(status.icon)}</span>
+          ${escapeHtml(status.label)}
+        </button>
+        <button type="button" class="state-button morale ${morale.half ? "half" : "steady"} ${state.action === "morale" ? "is-active" : ""}" data-command="set-morale" title="Show morale result">
+          <span class="state-icon">${morale.half ? "!" : "M"}</span>
+          ${escapeHtml(morale.failShort)}
+        </button>
+        <span class="state-badge ${unit.activated ? "done" : "ready"}">${unit.activated ? "Done" : "Ready"}</span>
+      </div>
+    `;
+  }
+
   function renderMovementBlock(unit) {
     const movement = movementProfile(unit);
     return `
-      <section class="movement-card">
-        <div class="movement-grid">
-          <span><b>${movement.full}"</b><small>Full move</small></span>
-          <span><b>${movement.shoot}"</b><small>Move + shoot</small></span>
-          <span><b>${movement.charge}"</b><small>Charge</small></span>
-          ${movement.scout ? `<span><b>${movement.scout}"</b><small>Scout deploy</small></span>` : ""}
-          ${movement.ambush ? `<span><b>R2+</b><small>Ambush</small></span>` : ""}
-        </div>
-      </section>
+      <div class="move-strip" aria-label="Movement">
+        <span><b>${movement.full}"</b> Move</span>
+        <span><b>${movement.shoot}"</b> Shoot move</span>
+        <span><b>${movement.charge}"</b> Charge</span>
+        ${movement.scout ? `<span><b>${movement.scout}"</b> Scout</span>` : ""}
+        ${movement.ambush ? `<span><b>R2+</b> Ambush</span>` : ""}
+      </div>
     `;
   }
 
   function renderTurnControls(unit) {
-    const status = statusMeta(unit);
+    const showingAttack = isAttackAction(state.action);
     return `
       <div class="turn-controls">
         <button type="button" data-command="done">${unit.activated ? "Ready" : "Done"}</button>
         <button type="button" class="${state.tired ? "is-active" : ""}" data-command="tired">${state.tired ? "Fatigued" : "Fresh"}</button>
-        <button type="button" class="status-command ${status.key}" data-command="status">
-          <span class="status-icon">${escapeHtml(status.icon)}</span>
-          <span><b>${escapeHtml(status.label)}</b><small>Tap to change</small></span>
-        </button>
         <button type="button" data-command="minus-model">- Model</button>
-        <button type="button" class="${isAttackAction(state.action) ? "is-active" : ""}" data-command="set-attack">Attack</button>
-        <button type="button" class="${state.action === "defend" ? "is-active" : ""}" data-command="set-defend">Defend</button>
-        <button type="button" class="${state.action === "morale" ? "is-active" : ""}" data-command="set-morale">Morale</button>
+        <button type="button" class="${state.action === "defend" ? "is-active" : ""}" data-command="${showingAttack ? "set-defend" : "set-attack"}">${showingAttack ? "Defend" : "Attacks"}</button>
       </div>
     `;
   }
@@ -1555,6 +1632,7 @@ Spit Venom (18", A2, Blast(3), Bane), Stomp (A4, AP(1)), Toxic Bite (A6, Bane)`;
           <button type="button" class="${state.action === "melee" ? "is-active" : ""}" data-action="melee" ${melee.length ? "" : "disabled"}>Melee</button>
         </div>
         <div class="callout">${escapeHtml(hint)}</div>
+        ${renderAttackPrep(unit, weapon)}
         <div class="weapons">
           ${weapons.length ? weapons.map((item) => `
             <button type="button" class="weapon ${item.id === weapon?.id ? "is-active" : ""}" data-weapon="${item.id}" data-weapon-action="${state.action}">
@@ -1653,7 +1731,6 @@ Spit Venom (18", A2, Blast(3), Bane), Stomp (A4, AP(1)), Toxic Bite (A6, Bane)`;
 
     return `
       <section class="block">
-        ${renderAttackPrep(unit, weapon)}
         <div class="math-grid">
           <div class="math-box"><span>Attack Dice</span><strong>${dice}</strong><small>${escapeHtml(weapon.name)}</small></div>
           <div class="math-box"><span>Hit Roll</span><strong>${hit}+</strong><small>${hitFaces(hit)}</small></div>
@@ -2497,7 +2574,7 @@ Spit Venom (18", A2, Blast(3), Bane), Stomp (A4, AP(1)), Toxic Bite (A6, Bane)`;
   function statusMeta(unit) {
     const key = unit.currentModels <= 0 ? "destroyed" : String(unit.status || "ready").toLowerCase();
     const map = {
-      ready: { key: "ready", label: "Ready", icon: "OK" },
+      ready: { key: "ready", label: "Normal", icon: "OK" },
       shaken: { key: "shaken", label: "Shaken", icon: "!" },
       stunned: { key: "stunned", label: "Stunned", icon: "Z" },
       destroyed: { key: "destroyed", label: "Destroyed", icon: "X" }
@@ -2691,7 +2768,7 @@ Spit Venom (18", A2, Blast(3), Bane), Stomp (A4, AP(1)), Toxic Bite (A6, Bane)`;
     return {
       half,
       failLabel: half ? "Runs" : "Shaken",
-      failShort: half ? "Fail morale: removed" : "Fail morale: shaken",
+      failShort: half ? "Morale: Runs" : "Morale: Shaken",
       failLong: half
         ? `${unit.name} is at half strength or below. If it fails morale, it runs and is removed.`
         : `${unit.name} is above half strength. If it fails morale, apply the failed morale status instead of removing it.`
