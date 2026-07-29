@@ -67,6 +67,8 @@ Spit Venom (18", A2, Blast(3), Bane), Stomp (A4, AP(1)), Toxic Bite (A6, Bane)`;
       targetOpen: false,
       moraleOpen: false,
       damageOpen: false,
+      currentRound: 1,
+      totalRounds: 4,
       unpredictableResult: "",
       impactHits: 0,
       importSide: "mine",
@@ -102,6 +104,8 @@ Spit Venom (18", A2, Blast(3), Bane), Stomp (A4, AP(1)), Toxic Bite (A6, Bane)`;
     next.moraleOpen = next.action === "morale" || Boolean(next.moraleOpen);
     next.damageOpen = next.action === "defend" || Boolean(next.damageOpen);
     if (!isAttackAction(next.action)) next.action = "charge";
+    next.totalRounds = Math.max(1, numberValue(next.totalRounds, 4));
+    next.currentRound = Math.max(1, Math.min(numberValue(next.currentRound, 1), next.totalRounds));
     next.contextOpen = false;
     return next;
   }
@@ -944,6 +948,66 @@ Spit Venom (18", A2, Blast(3), Bane), Stomp (A4, AP(1)), Toxic Bite (A6, Bane)`;
         font-size: .92rem;
       }
 
+      .round-strip {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 8px;
+        align-items: center;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: #fbfcfd;
+        padding: 8px;
+      }
+
+      .round-strip strong {
+        display: block;
+        font-size: 1rem;
+        line-height: 1.05;
+      }
+
+      .round-strip small {
+        display: block;
+        color: var(--muted);
+        font-weight: 800;
+        line-height: 1.2;
+      }
+
+      .round-controls {
+        display: flex;
+        gap: 6px;
+        align-items: center;
+      }
+
+      .round-controls label {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: #fff;
+        padding: 0 8px;
+        min-height: 38px;
+        color: var(--muted);
+        font-size: .68rem;
+        font-weight: 900;
+        text-transform: uppercase;
+      }
+
+      .round-controls input {
+        width: 42px;
+        border: 0;
+        outline: 0;
+        color: var(--ink);
+        font-size: .9rem;
+        font-weight: 900;
+      }
+
+      .round-controls button {
+        min-height: 38px;
+        padding: 0 10px;
+        white-space: nowrap;
+      }
+
       .turn-controls {
         display: grid;
         grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -1439,6 +1503,7 @@ Spit Venom (18", A2, Blast(3), Bane), Stomp (A4, AP(1)), Toxic Bite (A6, Bane)`;
 
         ${renderDeploymentBlock(unit)}
         ${renderMovementBlock(unit)}
+        ${renderRoundTracker()}
         ${renderTurnControls(unit)}
         ${state.moraleOpen ? renderMoraleBlock(unit) : ""}
         ${state.damageOpen ? renderDefenseBlock(unit) : ""}
@@ -1495,7 +1560,7 @@ Spit Venom (18", A2, Blast(3), Bane), Stomp (A4, AP(1)), Toxic Bite (A6, Bane)`;
         ` : ""}
         <button type="button" class="state-button morale ${morale.half ? "half" : "steady"} ${state.moraleOpen ? "is-active" : ""}" data-command="set-morale" title="Show morale result">
           <span class="state-icon">${morale.half ? "!" : "M"}</span>
-          ${escapeHtml(morale.failShort)}
+          ${escapeHtml(moraleBadgeLabel(unit))}
         </button>
         <span class="state-badge ${unit.activated ? "done" : "ready"}">${unit.activated ? "Done" : "Ready"}</span>
       </div>
@@ -1542,6 +1607,7 @@ Spit Venom (18", A2, Blast(3), Bane), Stomp (A4, AP(1)), Toxic Bite (A6, Bane)`;
           </div>
         </div>
         ${state.importOpen ? renderImportBox() : ""}
+        ${renderRoundTracker()}
         ${undeployed ? `
           <section class="deployment-card">
             <div>
@@ -1602,6 +1668,24 @@ Spit Venom (18", A2, Blast(3), Bane), Stomp (A4, AP(1)), Toxic Bite (A6, Bane)`;
           ${state.units.length ? `<button type="button" data-command="toggle-import">Close</button>` : ""}
         </div>
       </div>
+    `;
+  }
+
+  function renderRoundTracker() {
+    const readyCount = state.units.filter((unit) => unit.currentModels > 0 && !unit.activated).length;
+    const totalLive = state.units.filter((unit) => unit.currentModels > 0).length;
+    return `
+      <section class="round-strip" aria-label="Round tracker">
+        <div>
+          <span class="kicker">Round</span>
+          <strong>${state.currentRound} / ${state.totalRounds}</strong>
+          <small>${readyCount}/${totalLive} units ready</small>
+        </div>
+        <div class="round-controls">
+          <label>Total <input type="number" inputmode="numeric" min="1" max="12" data-field="totalRounds" value="${state.totalRounds}"></label>
+          <button type="button" class="primary" data-command="new-round">New Round</button>
+        </div>
+      </section>
     `;
   }
 
@@ -1833,7 +1917,7 @@ Spit Venom (18", A2, Blast(3), Bane), Stomp (A4, AP(1)), Toxic Bite (A6, Bane)`;
         <div class="math-grid">
           <div class="math-box"><span>Morale Roll</span><strong>Q${unit.quality}+</strong><small>${hitFaces(unit.quality)}</small></div>
           <div class="math-box"><span>Strength</span><strong>${morale.half ? "Half" : "Above"}</strong><small>${unit.currentModels}/${unit.startModels} models</small></div>
-          <div class="math-box"><span>If Failed</span><strong>${morale.failLabel}</strong><small>${morale.failShort}</small></div>
+          <div class="math-box"><span>If Failed</span><strong>${morale.failLabel}</strong><small>${morale.half ? "Half strength or below" : "Above half strength"}</small></div>
         </div>
         <div class="callout ${morale.half ? "warn" : ""}">
           ${escapeHtml(morale.failLong)}
@@ -2114,6 +2198,12 @@ Spit Venom (18", A2, Blast(3), Bane), Stomp (A4, AP(1)), Toxic Bite (A6, Bane)`;
     } else {
       state[key] = input.value === "" ? 0 : Number(input.value);
     }
+    if (key === "totalRounds") {
+      state.totalRounds = Math.max(1, Math.min(12, numberValue(input.value, state.totalRounds)));
+      state.currentRound = Math.min(state.currentRound, state.totalRounds);
+      saveState();
+      return;
+    }
     if (key === "hits") state.rendingHits = Math.min(numberValue(state.rendingHits), numberValue(state.hits));
     saveState();
   }
@@ -2207,6 +2297,22 @@ Spit Venom (18", A2, Blast(3), Bane), Stomp (A4, AP(1)), Toxic Bite (A6, Bane)`;
       importText(sampleOpponentText, "opponent", false);
       state.importOpen = false;
       addLog("Loaded examples", "Sample armies imported.");
+      render();
+      return;
+    }
+    if (command === "new-round") {
+      const previous = state.currentRound;
+      state.currentRound = Math.min(state.totalRounds, state.currentRound + 1);
+      state.units.forEach((item) => {
+        if (item.currentModels > 0) item.activated = false;
+      });
+      state.moraleOpen = false;
+      state.damageOpen = false;
+      state.hits = 0;
+      state.rendingHits = 0;
+      state.impactHits = 0;
+      state.unpredictableResult = "";
+      addLog("New round", previous === state.currentRound ? `Round ${state.currentRound}: all living units set to Ready.` : `Round ${previous} -> ${state.currentRound}: all living units set to Ready.`);
       render();
       return;
     }
@@ -2833,11 +2939,15 @@ Spit Venom (18", A2, Blast(3), Bane), Stomp (A4, AP(1)), Toxic Bite (A6, Bane)`;
     return {
       half,
       failLabel: half ? "Runs" : "Shaken",
-      failShort: half ? "Morale: Runs" : "Morale: Shaken",
+      failShort: half ? "Runs if failed" : "Shaken if failed",
       failLong: half
         ? `${unit.name} is at half strength or below. If it fails morale, it runs and is removed.`
         : `${unit.name} is above half strength. If it fails morale, apply the failed morale status instead of removing it.`
     };
+  }
+
+  function moraleBadgeLabel(unit) {
+    return moraleState(unit).half ? "Morale: Run Risk" : "Morale";
   }
 
   function sideLabel(side) {
